@@ -6,5 +6,5 @@ mypy==1.15.0
 pytest==8.3.5
 setuptools==78.1.0
 twine==6.1.0
-urllib3==2.3.0
+urllib3==2.6.3
 wheel==0.45.1
