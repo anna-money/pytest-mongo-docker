@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    tags: [ 'v*' ]
+  pull_request:
+    branches:
+      - master
+
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        pytest: ["pytest>=7.4,<7.5", "pytest>=8.0,<8.1", "pytest>=8.1,<8.2", "pytest>=8.2,<8.3", "pytest>=8.3,<8.4"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install dependencies
+      run: |
+        make deps
+    - name: Install ${{ matrix.pytest }}
+      run: |
+        pip install "${{ matrix.pytest }}"
+    - name: Lint
+      run: |
+        make lint
+    - name: Tests
+      run: |
+        make test
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    # Run only on pushing a tag
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Setup Python 3.13
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.13"
+    - name: Install dependencies
+      run:
+        make deps
+    - name: Make dists
+      run:
+        make dists
+    - name: PyPI upload
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        twine upload dist/*
