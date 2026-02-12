@@ -7,7 +7,7 @@ from .fixtures import Mongo, mongo, mongo_5, mongo_6, mongo_7, mongo_8, run_mong
 
 __all__: Tuple[str, ...] = ("Mongo", "run_mongo", "mongo", "mongo_5", "mongo_6", "mongo_7", "mongo_8")
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 version = f"{__version__}, Python {sys.version}"
 

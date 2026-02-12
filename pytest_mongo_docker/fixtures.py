@@ -6,7 +6,6 @@ import uuid
 from typing import Generator
 
 import docker
-import docker.errors
 import pytest
 
 from .utils import find_unused_local_port, is_mongo_ready
@@ -25,7 +24,7 @@ def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None,
     docker_client = docker.APIClient(base_url=os.getenv("DOCKER_HOST"), version="auto")
     try:
         docker_client.inspect_image(image)
-    except (docker.errors.ImageNotFound, docker.errors.APIError):
+    except Exception:
         docker_client.pull(image)
 
     unused_port = find_unused_local_port()
