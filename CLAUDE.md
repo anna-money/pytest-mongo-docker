@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-pytest-mongo is a pytest plugin that provides session-scoped MongoDB fixtures backed by Docker containers. It automatically pulls images, allocates ports, mounts data to tmpfs for speed, and cleans up containers after tests.
+pytest-mongo-docker is a pytest plugin that provides session-scoped MongoDB fixtures backed by Docker containers. It automatically pulls images, allocates ports, mounts data to tmpfs for speed, and cleans up containers after tests.
 
 ## Commands
 
@@ -29,9 +29,9 @@ make mypy          # Strict type checking
 The plugin registers via the `pytest11` entry point in setup.py, making fixtures automatically available when installed.
 
 **Key files:**
-- `pytest_mongo/fixtures.py` — `Mongo` dataclass (host/port) and `run_mongo()` context manager that handles the full Docker container lifecycle (pull → create → start → readiness check → yield → kill → remove). All fixtures (`mongo`, `mongo_5`–`mongo_8`) are session-scoped and delegate to `run_mongo()` with different image tags.
-- `pytest_mongo/utils.py` — Port allocation and MongoDB readiness detection. Readiness checking uses a fallback chain: pymongo → motor → dummy (always ready). Neither pymongo nor motor is a hard dependency.
-- `tests/conftest.py` — Loads the plugin via `pytest_plugins = ["pytest_mongo"]` (needed because the plugin isn't pip-installed during development).
+- `pytest_mongo_docker/fixtures.py` — `Mongo` dataclass (host/port) and `run_mongo()` context manager that handles the full Docker container lifecycle (pull → create → start → readiness check → yield → kill → remove). All fixtures (`mongo`, `mongo_5`–`mongo_8`) are session-scoped and delegate to `run_mongo()` with different image tags.
+- `pytest_mongo_docker/utils.py` — Port allocation and MongoDB readiness detection. Readiness checking uses a fallback chain: pymongo → motor → dummy (always ready). Neither pymongo nor motor is a hard dependency.
+- `tests/conftest.py` — Loads the plugin via `pytest_plugins = ["pytest_mongo_docker"]` (needed because the plugin isn't pip-installed during development).
 
 ## Style
 

@@ -14,12 +14,12 @@ def read(*parts):
 
 def read_version():
     regexp = re.compile(r"^__version__\W*=\W*\"([\d.abrc]+)\"")
-    for line in read("pytest_mongo", "__init__.py").splitlines():
+    for line in read("pytest_mongo_docker", "__init__.py").splitlines():
         match = regexp.match(line)
         if match is not None:
             return match.group(1)
     else:
-        raise RuntimeError("Cannot find version in pytest_mongo/__init__.py")
+        raise RuntimeError("Cannot find version in pytest_mongo_docker/__init__.py")
 
 
 long_description_parts = []
@@ -34,7 +34,7 @@ long_description = "\r\n".join(long_description_parts)
 # custom PyPI classifier for pytest plugins
 classifiers = ["Framework :: Pytest"],
 setup(
-    name="pytest_mongo",
+    name="pytest-mongo-docker",
     version=read_version(),
     description="A tiny plugin for pytest which runs MongoDB in Docker",
     long_description=long_description,
@@ -46,9 +46,9 @@ setup(
     url="https://github.com/anna-money/pytest-mongo",
     author_email="nerdsguide@gmail.com",
     license="MIT",
-    packages=["pytest_mongo"],
-    package_dir={"pytest_mongo": "./pytest_mongo"},
-    package_data={"pytest_mongo": ["py.typed"]},
+    packages=["pytest_mongo_docker"],
+    package_dir={"pytest_mongo_docker": "./pytest_mongo_docker"},
+    package_data={"pytest_mongo_docker": ["py.typed"]},
     install_requires=install_requires,
     include_package_data=True,
     classifiers=[
@@ -67,7 +67,7 @@ setup(
     ],
     entry_points={
         "pytest11": [
-            "pytest_mongo = pytest_mongo",
+            "pytest_mongo_docker = pytest_mongo_docker",
         ]
     }
 )
