@@ -22,10 +22,7 @@ class Mongo:
 @contextlib.contextmanager
 def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None, None]:
     docker_client = docker.APIClient(base_url=os.getenv("DOCKER_HOST"), version="auto")
-    try:
-        docker_client.inspect_image(image)
-    except Exception:
-        docker_client.pull(image)
+    docker_client.pull(image)
 
     unused_port = find_unused_local_port()
 
