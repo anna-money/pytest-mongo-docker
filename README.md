@@ -112,7 +112,3 @@ The plugin uses Docker's Python API to:
 4. Start the container and wait for MongoDB to be ready
 5. Yield the `Mongo` object with connection details
 6. Kill and remove the container after all tests complete
-
-## License
-
-MIT
