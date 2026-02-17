@@ -74,9 +74,9 @@ def init_env(mongo_6: pytest_mongo_docker.Mongo) -> None:
     os.environ["MONGODB_DBNAME"] = "myapp"
 
 
-def test_app(mongo_6: pytest_mongo_docker.Mongo):
-    # Your application code reads from environment variables
-    # and connects to the MongoDB instance
+def test_app():
+    # Your application reads from environment variables,
+    # no need to reference the fixture directly
     pass
 ```
 
