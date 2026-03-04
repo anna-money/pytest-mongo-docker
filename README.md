@@ -8,6 +8,7 @@ A pytest plugin that provides session-scoped MongoDB fixtures backed by Docker c
 - **Automatic lifecycle management** — Pulls images, allocates ports, starts containers, and cleans up after tests
 - **Fast** — Data directory mounted to tmpfs for maximum speed
 - **Version-specific fixtures** — Test against MongoDB 5, 6, 7, 8, or latest
+- **Replica set fixtures** — Drop-in variants with `--replSet` enabled for change stream support
 - **Session-scoped** — One container per test session, shared across all tests
 
 ## Installation
@@ -52,11 +53,30 @@ def test_pymongo(mongo: pytest_mongo_docker.Mongo):
 
 All fixtures are session-scoped and return a `Mongo` object with `host` and `port` attributes:
 
+**Standalone (default):**
+
 - `mongo` — Latest MongoDB version (`mongo:latest`)
 - `mongo_5` — MongoDB 5.x (`mongo:5`)
 - `mongo_6` — MongoDB 6.x (`mongo:6`)
 - `mongo_7` — MongoDB 7.x (`mongo:7`)
 - `mongo_8` — MongoDB 8.x (`mongo:8`)
+
+**Replica set** (required for change streams and transactions):
+
+- `mongo_rs` — Latest MongoDB version (`mongo:latest`)
+- `mongo_5_rs` — MongoDB 5.x (`mongo:5`)
+- `mongo_6_rs` — MongoDB 6.x (`mongo:6`)
+- `mongo_7_rs` — MongoDB 7.x (`mongo:7`)
+- `mongo_8_rs` — MongoDB 8.x (`mongo:8`)
+
+Replica set fixtures require `pymongo` (`pip install pymongo`) and start MongoDB with `--replSet rs0`. When connecting, use `directConnection=True` to avoid topology-discovery issues from the Docker port mapping:
+
+```python
+client = pymongo.MongoClient(
+    f"mongodb://{mongo_6_rs.host}:{mongo_6_rs.port}/",
+    directConnection=True,
+)
+```
 
 ### Advanced Example: Configuring Environment Variables
 
