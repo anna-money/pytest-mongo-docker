@@ -41,7 +41,7 @@ setup(
     long_description_content_type="text/markdown",
     platforms=["macOS", "POSIX", "Windows"],
     author="Stephen Oberauer",
-    python_requires=">=3.12",
+    python_requires=">=3.9",
     project_urls={},
     url="https://github.com/anna-money/pytest-mongo",
     author_email="nerdsguide@gmail.com",
