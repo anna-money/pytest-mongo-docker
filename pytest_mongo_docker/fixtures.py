@@ -4,7 +4,7 @@ import os
 import socket
 import time
 import uuid
-from typing import Generator
+from typing import Any, Generator
 
 import docker
 import pytest
@@ -75,9 +75,7 @@ def run_mongo_replicaset(
         import pymongo
         import pymongo.errors
     except ImportError as e:
-        raise ImportError(
-            "pymongo is required for replica set fixtures. Install it with: pip install pymongo"
-        ) from e
+        raise ImportError("pymongo is required for replica set fixtures. Install it with: pip install pymongo") from e
 
     docker_client = docker.APIClient(base_url=os.getenv("DOCKER_HOST"), version="auto")
     docker_client.pull(image)
@@ -116,7 +114,7 @@ def run_mongo_replicaset(
         # (the container-internal port) so MongoDB can reach itself for
         # internal health checks. Connect with directConnection=True to avoid
         # topology-discovery issues from the Docker port mapping.
-        client = pymongo.MongoClient(f"mongodb://{LOCALHOST}:{port}/", directConnection=True)
+        client: pymongo.MongoClient[Any] = pymongo.MongoClient(f"mongodb://{LOCALHOST}:{port}/", directConnection=True)
         try:
             client.admin.command(
                 "replSetInitiate",
