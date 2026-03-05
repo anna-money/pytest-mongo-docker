@@ -20,7 +20,7 @@ def _try_get_is_mongo_ready_based_on_pymongo() -> Optional[IsReadyFunc]:
 
         def _is_mongo_ready(**params: Any) -> bool:
             try:
-                client = pymongo.MongoClient(**params, serverSelectionTimeoutMS=1000)
+                client: pymongo.MongoClient[Any] = pymongo.MongoClient(**params, serverSelectionTimeoutMS=1000)
                 client.admin.command("ping")
                 client.close()
                 return True
@@ -41,7 +41,9 @@ def _try_get_is_mongo_ready_based_on_motor() -> Optional[IsReadyFunc]:
         def _is_mongo_ready(**params: Any) -> bool:
             async def _is_mongo_ready_async() -> bool:
                 try:
-                    client = motor.motor_asyncio.AsyncIOMotorClient(**params, serverSelectionTimeoutMS=1000)
+                    client: motor.motor_asyncio.AsyncIOMotorClient[Any] = motor.motor_asyncio.AsyncIOMotorClient(
+                        **params, serverSelectionTimeoutMS=1000
+                    )
                     await client.admin.command("ping")
                     client.close()
                     return True
