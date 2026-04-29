@@ -1,6 +1,5 @@
 import contextlib
 import dataclasses
-import os
 import socket
 import time
 import uuid
@@ -9,7 +8,7 @@ from typing import Any, Generator
 import docker
 import pytest
 
-from .utils import find_unused_local_port, is_mongo_ready
+from .utils import find_unused_local_port, is_mongo_ready, resolve_docker_host
 
 LOCALHOST = "127.0.0.1"
 
@@ -22,7 +21,7 @@ class Mongo:
 
 @contextlib.contextmanager
 def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None, None]:
-    docker_client = docker.APIClient(base_url=os.getenv("DOCKER_HOST"), version="auto")
+    docker_client = docker.APIClient(base_url=resolve_docker_host(), version="auto")
     docker_client.pull(image)
 
     unused_port = find_unused_local_port()
@@ -77,7 +76,7 @@ def run_mongo_replicaset(
     except ImportError as e:
         raise ImportError("pymongo is required for replica set fixtures. Install it with: pip install pymongo") from e
 
-    docker_client = docker.APIClient(base_url=os.getenv("DOCKER_HOST"), version="auto")
+    docker_client = docker.APIClient(base_url=resolve_docker_host(), version="auto")
     docker_client.pull(image)
 
     port = find_unused_local_port()
