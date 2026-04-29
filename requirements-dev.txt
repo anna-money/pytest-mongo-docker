@@ -7,5 +7,5 @@ pytest==8.3.5
 setuptools==78.1.0
 twine==6.1.0
 urllib3==2.3.0
-wheel==0.45.1
+wheel==0.47.0
 pymongo==4.16.0
