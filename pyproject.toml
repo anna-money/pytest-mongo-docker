@@ -36,7 +36,6 @@ pytest_mg = "pytest_mg"
 [project.optional-dependencies]
 dev = [
     "mypy==1.15.0",
-    "pre-commit>=3.8.0",
     "pymongo==4.16.0",
     "pytest==8.3.5",
     "ruff==0.15.12",

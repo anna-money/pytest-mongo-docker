@@ -1,4 +1,4 @@
-.PHONY: all uv deps lint test mypy pre-commit pre-commit-install pre-commit-update build
+.PHONY: all uv deps lint test ruff ruff-fix format mypy build
 
 UV_EXTRA_ARGS ?=
 
@@ -10,19 +10,20 @@ uv:
 deps: uv
 	@uv sync --all-extras
 
+ruff: deps
+	@uv run ruff check pytest_mg tests
+	@uv run ruff format --check pytest_mg tests
+
+ruff-fix: deps
+	@uv run ruff check --fix pytest_mg tests
+	@uv run ruff format pytest_mg tests
+
+format: ruff-fix
+
 mypy: deps
 	@uv run $(UV_EXTRA_ARGS) mypy --strict --ignore-missing-imports pytest_mg tests
 
-pre-commit-install: deps
-	@uv run pre-commit install
-
-pre-commit: deps
-	@uv run pre-commit run --all-files
-
-pre-commit-update: deps
-	@uv run pre-commit autoupdate
-
-lint: pre-commit mypy
+lint: ruff mypy
 
 test: deps
 	@uv run $(UV_EXTRA_ARGS) pytest -vv --rootdir tests .

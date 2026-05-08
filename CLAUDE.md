@@ -11,20 +11,20 @@ pytest-mg is a pytest plugin that provides session-scoped MongoDB fixtures backe
 Toolchain: `uv` (deps + build + publish). Build backend: `hatchling` + `hatch-vcs` (version derived from git tags).
 
 ```bash
-make deps                # uv sync --all-extras (installs project + dev deps)
-make lint                # Run pre-commit (ruff-check + ruff-format) and mypy
-make test                # Run tests
-make all                 # deps + lint + test
-make build               # uv build (sdist + wheel)
+make deps          # uv sync --all-extras (installs project + dev deps)
+make lint          # Run ruff (check + format --check) and mypy
+make test          # Run tests
+make all           # deps + lint + test
+make build         # uv build (sdist + wheel)
 
 # Run a single test
 uv run pytest -vv --rootdir tests -k test_mongo_5
 
 # Individual targets
-make pre-commit          # ruff-check + ruff-format + misc hooks (all files)
-make pre-commit-install  # install git hook (once per clone)
-make pre-commit-update   # bump pinned hook revisions
-make mypy                # Strict type checking
+make ruff          # ruff check + ruff format --check
+make ruff-fix      # ruff check --fix + ruff format (writes changes)
+make format        # alias for ruff-fix
+make mypy          # Strict type checking
 ```
 
 Release: create a GitHub Release. The `Publish` workflow runs `uv build` and uploads via `pypa/gh-action-pypi-publish` using PyPI Trusted Publishing (OIDC, no token). Version comes from the underlying tag automatically — no source bump needed.
@@ -42,7 +42,7 @@ The plugin registers via the `pytest11` entry point in `pyproject.toml`, making 
 
 - Line length: 120
 - Type annotations required everywhere (`mypy --strict`)
-- Formatting + linting: `ruff` (`ruff-format` + `ruff-check`), wired via `pre-commit`. Run `make pre-commit` for all-files run, `make pre-commit-install` once to install the git hook.
+- Formatting + linting: `ruff` (`ruff check` + `ruff format`). Run `make ruff` to verify or `make ruff-fix` to auto-fix and reformat.
 
 ## CI
 
