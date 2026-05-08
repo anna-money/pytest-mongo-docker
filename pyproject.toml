@@ -7,17 +7,16 @@ license = {text = "MIT"}
 authors = [
     {name = "Taras Drapalyuk", email = "taras@drapalyuk.com"},
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "docker>=7.0.0",
-    "pytest>=7.4",
+    "pytest>=8.0",
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
