@@ -1,9 +1,10 @@
-## Unreleased
+## v0.0.8 (2026-05-08)
 
 * Skip `docker pull` when image already present locally (inspect first, pull only on `ImageNotFound`)
 * Tighten readiness polling intervals (500ms → 100ms) for standalone and replica set startup
 * Lower pymongo/motor `serverSelectionTimeoutMS` (1000 → 300) so poll attempts fail fast during mongod boot
 * Run mongod with explicit `--bind_ip_all --quiet` (RS keeps `--replSet`) to reduce startup log overhead
+* Fix LICENSE copyright holder
 
 ## v0.0.7 (2026-05-08)
 
