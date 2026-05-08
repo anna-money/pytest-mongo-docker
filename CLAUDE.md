@@ -27,7 +27,7 @@ make flake8        # Style checks
 make mypy          # Strict type checking
 ```
 
-Release: push a `v*` git tag. CI runs `uv build` + `uv publish` (token in `PYPI_TOKEN` secret). Version comes from the tag automatically — no source bump needed.
+Release: create a GitHub Release. The `Publish` workflow runs `uv build` and uploads via `pypa/gh-action-pypi-publish` using PyPI Trusted Publishing (OIDC, no token). Version comes from the underlying tag automatically — no source bump needed.
 
 ## Architecture
 
