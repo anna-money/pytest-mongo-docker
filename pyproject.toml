@@ -35,9 +35,9 @@ pytest_mg = "pytest_mg"
 
 [project.optional-dependencies]
 dev = [
-    "mypy==1.15.0",
-    "pymongo==4.16.0",
-    "pytest==8.3.5",
+    "mypy==2.0.0",
+    "pymongo==4.17.0",
+    "pytest==9.0.3",
     "ruff==0.15.12",
 ]
 
