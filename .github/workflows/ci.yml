@@ -10,10 +10,24 @@ on:
 
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - uses: astral-sh/setup-uv@v7
+      with:
+        python-version: "3.13"
+    - run: make deps
+    - run: make lint
+
   test:
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: lint
 
     strategy:
       fail-fast: false
@@ -31,5 +45,4 @@ jobs:
     - uses: astral-sh/setup-uv@v7
     - run: echo ${{ matrix.python }} > .python-version
     - run: make deps
-    - run: make lint
     - run: make test

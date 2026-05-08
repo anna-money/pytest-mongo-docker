@@ -35,12 +35,11 @@ pytest_mg = "pytest_mg"
 
 [project.optional-dependencies]
 dev = [
-    "black==25.1.0",
-    "flake8==7.2.0",
-    "isort==6.0.1",
     "mypy==1.15.0",
+    "pre-commit>=3.8.0",
     "pymongo==4.16.0",
     "pytest==8.3.5",
+    "ruff==0.15.12",
 ]
 
 [build-system]
@@ -59,4 +58,22 @@ include = [
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "RUF",  # ruff
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "G",    # flake8-logging-format
+    "T20",  # flake8-print
+    "UP",   # pyupgrade
 ]

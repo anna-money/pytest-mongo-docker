@@ -1,7 +1,6 @@
 from importlib.metadata import version as _get_version
-from typing import Tuple
 
-from .fixtures import (  # noqa
+from .fixtures import (
     Mongo,
     mongo,
     mongo_5,
@@ -17,20 +16,20 @@ from .fixtures import (  # noqa
     run_mongo_replicaset,
 )
 
-__all__: Tuple[str, ...] = (
+__all__: tuple[str, ...] = (
     "Mongo",
-    "run_mongo",
-    "run_mongo_replicaset",
     "mongo",
     "mongo_5",
-    "mongo_6",
-    "mongo_7",
-    "mongo_8",
-    "mongo_rs",
     "mongo_5_rs",
+    "mongo_6",
     "mongo_6_rs",
+    "mongo_7",
     "mongo_7_rs",
+    "mongo_8",
     "mongo_8_rs",
+    "mongo_rs",
+    "run_mongo",
+    "run_mongo_replicaset",
 )
 
 __version__ = _get_version("pytest-mg")
