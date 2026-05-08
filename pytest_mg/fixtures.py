@@ -7,11 +7,21 @@ from collections.abc import Generator
 from typing import Any
 
 import docker
+import docker.errors
 import pytest
 
 from .utils import find_unused_local_port, is_mongo_ready, resolve_docker_host
 
 LOCALHOST = "127.0.0.1"
+
+
+def _ensure_image(client: docker.APIClient, image: str) -> None:
+    # Skip the pull when the image is already present locally — saves the
+    # round-trip to the registry on warm dev machines.
+    try:
+        client.inspect_image(image)
+    except docker.errors.ImageNotFound:
+        client.pull(image)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -23,7 +33,7 @@ class Mongo:
 @contextlib.contextmanager
 def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None, None]:
     docker_client = docker.APIClient(base_url=resolve_docker_host(), version="auto")
-    docker_client.pull(image)
+    _ensure_image(docker_client, image)
 
     unused_port = find_unused_local_port()
 
@@ -34,6 +44,10 @@ def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None,
         name=f"pytest-mongo-{uuid.uuid4()}",
         ports=[27017],
         detach=True,
+        # Override the image's default CMD: --bind_ip_all is required so the
+        # container's port mapping reaches mongod; --quiet trims log overhead
+        # during startup.
+        command=["mongod", "--bind_ip_all", "--quiet"],
         host_config=docker_client.create_host_config(
             port_bindings={27017: (LOCALHOST, unused_port)}, tmpfs=[mongo_data_path]
         ),
@@ -51,7 +65,7 @@ def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None,
             ):
                 break
 
-            time.sleep(0.5)
+            time.sleep(0.1)
         else:
             container_logs = docker_client.logs(container["Id"]).decode()
             pytest.fail(f"Failed to start mongo using {image} in {ready_timeout} seconds: {container_logs}")
@@ -78,7 +92,7 @@ def run_mongo_replicaset(
         raise ImportError("pymongo is required for replica set fixtures. Install it with: pip install pymongo") from e
 
     docker_client = docker.APIClient(base_url=resolve_docker_host(), version="auto")
-    docker_client.pull(image)
+    _ensure_image(docker_client, image)
 
     port = find_unused_local_port()
 
@@ -87,7 +101,7 @@ def run_mongo_replicaset(
         name=f"pytest-mongo-rs-{uuid.uuid4()}",
         ports=[27017],
         detach=True,
-        command=["mongod", "--replSet", replica_set],
+        command=["mongod", "--bind_ip_all", "--replSet", replica_set, "--quiet"],
         host_config=docker_client.create_host_config(
             port_bindings={27017: (LOCALHOST, port)},
             tmpfs=["/data/db"],
@@ -105,7 +119,7 @@ def run_mongo_replicaset(
                 with socket.create_connection((LOCALHOST, port), timeout=1.0):
                     break
             except OSError:
-                time.sleep(0.5)
+                time.sleep(0.1)
         else:
             container_logs = docker_client.logs(container["Id"]).decode()
             pytest.fail(f"Failed to start mongo using {image} in {ready_timeout} seconds: {container_logs}")
@@ -128,7 +142,7 @@ def run_mongo_replicaset(
                         break
                 except Exception:
                     pass
-                time.sleep(0.5)
+                time.sleep(0.1)
             else:
                 pytest.fail(f"MongoDB replica set did not become primary in {ready_timeout} seconds")
         finally:
