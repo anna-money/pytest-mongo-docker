@@ -5,7 +5,6 @@ description = "A tiny plugin for pytest which runs MongoDB in Docker"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Stephen Oberauer", email = "nerdsguide@gmail.com"},
     {name = "Taras Drapalyuk", email = "taras@drapalyuk.com"},
 ]
 requires-python = ">=3.9"
