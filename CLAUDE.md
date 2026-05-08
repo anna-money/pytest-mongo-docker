@@ -46,4 +46,4 @@ The plugin registers via the `pytest11` entry point in `pyproject.toml`, making 
 
 ## CI
 
-GitHub Actions matrix tests across Python 3.9–3.13 and pytest 7.4.x–8.3.x. Deploys to PyPI on git tags.
+GitHub Actions matrix tests across Python 3.9–3.14 and pytest 7.4.x–9.0.x (pytest 9 excludes Python 3.9 — requires >=3.10). Deploys to PyPI on git tags.
