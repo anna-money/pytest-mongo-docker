@@ -3,7 +3,8 @@ name = "pytest-mg"
 dynamic = ["version"]
 description = "A tiny plugin for pytest which runs MongoDB in Docker"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = [
     "pytest",
     "pytest-plugin",
@@ -23,7 +24,6 @@ dependencies = [
     "pytest>=8.0",
 ]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
