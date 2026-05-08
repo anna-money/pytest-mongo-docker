@@ -1,0 +1,60 @@
+[project]
+name = "pytest-mongo-docker"
+dynamic = ["version"]
+description = "A tiny plugin for pytest which runs MongoDB in Docker"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Stephen Oberauer", email = "nerdsguide@gmail.com"}]
+requires-python = ">=3.9"
+dependencies = [
+    "docker>=7.0.0",
+    "pytest>=7.4",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Pytest",
+]
+
+[project.urls]
+Homepage = "https://github.com/anna-money/pytest-mongo"
+
+[project.entry-points.pytest11]
+pytest_mongo_docker = "pytest_mongo_docker"
+
+[project.optional-dependencies]
+dev = [
+    "black==25.1.0",
+    "flake8==7.2.0",
+    "isort==6.0.1",
+    "mypy==1.15.0",
+    "pymongo==4.16.0",
+    "pytest==8.3.5",
+]
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pytest_mongo_docker"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "pytest_mongo_docker",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+]
