@@ -1,32 +1,32 @@
+.PHONY: all uv deps lint test ruff ruff-fix format mypy build
+
+UV_EXTRA_ARGS ?=
+
 all: deps lint test
 
-deps:
-	@python3 -m pip install --upgrade pip && pip3 install -r requirements-dev.txt
+uv:
+	@which uv >/dev/null 2>&1 || { echo "uv is not installed"; exit 1; }
 
-black:
-	@black --line-length 120 pytest_mongo_docker tests
+deps: uv
+	@uv sync --all-extras
 
-isort:
-	@isort --line-length 120 --use-parentheses --multi-line 3 --combine-as --trailing-comma pytest_mongo_docker tests
+ruff: deps
+	@uv run ruff check pytest_mg tests
+	@uv run ruff format --check pytest_mg tests
 
-flake8:
-	@flake8 --max-line-length 120 --ignore C901,C812,E203,E704 --extend-ignore W503 pytest_mongo_docker tests
+ruff-fix: deps
+	@uv run ruff check --fix pytest_mg tests
+	@uv run ruff format pytest_mg tests
 
-mypy:
-	@mypy --strict --ignore-missing-imports pytest_mongo_docker tests
+format: ruff-fix
 
-lint: black isort flake8 mypy
+mypy: deps
+	@uv run $(UV_EXTRA_ARGS) mypy --strict --ignore-missing-imports pytest_mg tests
 
-test:
-	@python3 -m pytest -vv --rootdir tests .
+lint: ruff mypy
 
-pyenv:
-	echo pytest_mongo_docker > .python-version && pyenv install -s 3.13 && pyenv virtualenv -f 3.13 pytest_mongo_docker
+test: deps
+	@uv run $(UV_EXTRA_ARGS) pytest -vv --rootdir tests .
 
-pyenv-delete:
-	pyenv virtualenv-delete -f pytest_mongo_docker
-
-
-dists:
-	python setup.py sdist bdist_wheel
-	twine check dist/*
+build: uv
+	@uv build

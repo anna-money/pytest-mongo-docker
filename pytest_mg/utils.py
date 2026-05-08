@@ -3,7 +3,7 @@ import os
 import shutil
 import socket
 import subprocess
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 
 class IsReadyFunc(Protocol):
@@ -15,7 +15,7 @@ class IsReadyFunc(Protocol):
     ) -> bool: ...
 
 
-def _try_get_is_mongo_ready_based_on_pymongo() -> Optional[IsReadyFunc]:
+def _try_get_is_mongo_ready_based_on_pymongo() -> IsReadyFunc | None:
     try:
         # noinspection PyPackageRequirements
         import pymongo
@@ -35,7 +35,7 @@ def _try_get_is_mongo_ready_based_on_pymongo() -> Optional[IsReadyFunc]:
         return None
 
 
-def _try_get_is_mongo_ready_based_on_motor() -> Optional[IsReadyFunc]:
+def _try_get_is_mongo_ready_based_on_motor() -> IsReadyFunc | None:
     try:
         # noinspection PyPackageRequirements
         import motor.motor_asyncio
@@ -81,7 +81,7 @@ def find_unused_local_port() -> int:
         return s.getsockname()[1]  # type: ignore
 
 
-def resolve_docker_host() -> Optional[str]:
+def resolve_docker_host() -> str | None:
     # The `docker` Python SDK doesn't read `docker context` like the CLI does.
     # Hand DOCKER_HOST to it from the active context so non-default setups
     # (Colima, custom contexts) work without the user exporting it manually.
