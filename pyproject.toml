@@ -1,5 +1,5 @@
 [project]
-name = "pytest-mongo-docker"
+name = "pytest-mg"
 dynamic = ["version"]
 description = "A tiny plugin for pytest which runs MongoDB in Docker"
 readme = "README.md"
@@ -31,7 +31,7 @@ classifiers = [
 Homepage = "https://github.com/anna-money/pytest-mongo"
 
 [project.entry-points.pytest11]
-pytest_mongo_docker = "pytest_mongo_docker"
+pytest_mg = "pytest_mg"
 
 [project.optional-dependencies]
 dev = [
@@ -51,11 +51,11 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.hatch.build.targets.wheel]
-packages = ["pytest_mongo_docker"]
+packages = ["pytest_mg"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "pytest_mongo_docker",
+    "pytest_mg",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

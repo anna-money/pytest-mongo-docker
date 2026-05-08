@@ -446,7 +446,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pytest-mongo-docker"
+name = "pytest-mg"
 source = { editable = "." }
 dependencies = [
     { name = "docker" },

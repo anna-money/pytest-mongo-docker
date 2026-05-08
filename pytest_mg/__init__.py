@@ -33,4 +33,4 @@ __all__: Tuple[str, ...] = (
     "mongo_8_rs",
 )
 
-__version__ = _get_version("pytest-mongo-docker")
+__version__ = _get_version("pytest-mg")
