@@ -4,6 +4,16 @@ dynamic = ["version"]
 description = "A tiny plugin for pytest which runs MongoDB in Docker"
 readme = "README.md"
 license = {text = "MIT"}
+keywords = [
+    "pytest",
+    "pytest-plugin",
+    "mongo",
+    "mongodb",
+    "docker",
+    "fixtures",
+    "testing",
+    "replica-set",
+]
 authors = [
     {name = "Taras Drapalyuk", email = "taras@drapalyuk.com"},
 ]
