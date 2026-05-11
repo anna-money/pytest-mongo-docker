@@ -1,7 +1,6 @@
 from importlib.metadata import version as _get_version
 
 from .fixtures import (
-    Mongo,
     mongo,
     mongo_5,
     mongo_5_rs,
@@ -12,9 +11,8 @@ from .fixtures import (
     mongo_8,
     mongo_8_rs,
     mongo_rs,
-    run_mongo,
-    run_mongo_replicaset,
 )
+from .runners import Mongo, run_mongo, run_mongo_replicaset
 
 __all__: tuple[str, ...] = (
     "Mongo",

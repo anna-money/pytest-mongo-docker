@@ -7,7 +7,7 @@ import docker
 import docker.errors
 import pytest
 
-from pytest_mg.fixtures import _ensure_image, run_mongo, run_mongo_replicaset
+from pytest_mg.runners import _ensure_image, run_mongo, run_mongo_replicaset
 
 
 def _make_mock_apiclient(container_id: str = "deadbeef") -> mock.MagicMock:
@@ -36,8 +36,8 @@ def test_ensure_image_pulls_when_image_not_found() -> None:
 def test_run_mongo_pytest_fail_on_readiness_timeout_and_cleanup() -> None:
     client = _make_mock_apiclient()
     with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=False),
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=False),
         pytest.raises(_pytest.outcomes.Failed) as excinfo,
     ):
         with run_mongo("mongo:latest", ready_timeout=0.05):
@@ -51,8 +51,8 @@ def test_run_mongo_pytest_fail_on_readiness_timeout_and_cleanup() -> None:
 def test_run_mongo_cleanup_on_yield_exception() -> None:
     client = _make_mock_apiclient()
     with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=True),
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=True),
         pytest.raises(RuntimeError, match="boom"),
     ):
         with run_mongo("mongo:latest", ready_timeout=1.0):
@@ -66,8 +66,8 @@ def test_run_mongo_cleanup_on_yield_exception() -> None:
 def test_run_mongo_yields_mongo_with_correct_host() -> None:
     client = _make_mock_apiclient()
     with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=True),
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=True),
     ):
         with run_mongo("mongo:latest", ready_timeout=1.0) as m:
             assert m.host == "127.0.0.1"
@@ -85,8 +85,8 @@ def test_run_mongo_replicaset_raises_when_pymongo_missing() -> None:
 def test_run_mongo_replicaset_pytest_fail_on_readiness_timeout() -> None:
     client = _make_mock_apiclient()
     with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=False),
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=False),
         pytest.raises(_pytest.outcomes.Failed) as excinfo,
     ):
         with run_mongo_replicaset("mongo:latest", ready_timeout=0.05):
@@ -112,8 +112,8 @@ def test_run_mongo_replicaset_primary_election_timeout_pytest_fail() -> None:
     pymongo_client.admin.command.side_effect = _admin_command
 
     with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=True),
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=True),
         mock.patch("pymongo.MongoClient", return_value=pymongo_client),
         pytest.raises(_pytest.outcomes.Failed) as excinfo,
     ):
@@ -133,8 +133,8 @@ def test_run_mongo_replicaset_cleanup_swallows_kill_exception() -> None:
     client.remove_container.side_effect = docker.errors.APIError("remove failed")
 
     with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=False),
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=False),
         pytest.raises(_pytest.outcomes.Failed),
     ):
         with run_mongo_replicaset("mongo:latest", ready_timeout=0.01):
