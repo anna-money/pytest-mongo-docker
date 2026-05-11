@@ -5,18 +5,22 @@ pytest_plugins = ("pytester",)
 
 def test_mongo_fixtures_discoverable_via_entrypoint(pytester: pytest.Pytester) -> None:
     result = pytester.runpytest("--fixtures", "-q")
-    result.stdout.fnmatch_lines(
-        [
-            "*mongo*",
-            "*mongo_5*",
-            "*mongo_6*",
-            "*mongo_7*",
-            "*mongo_8*",
-            "*mongo_rs*",
-            "*mongo_6_rs*",
-        ]
-    )
     assert result.ret == 0
+    output = result.stdout.str()
+    # Order-agnostic: every fixture name must appear somewhere in the listing.
+    for name in (
+        "mongo",
+        "mongo_5",
+        "mongo_6",
+        "mongo_7",
+        "mongo_8",
+        "mongo_rs",
+        "mongo_5_rs",
+        "mongo_6_rs",
+        "mongo_7_rs",
+        "mongo_8_rs",
+    ):
+        assert name in output, f"fixture {name!r} not listed in `pytest --fixtures` output"
 
 
 def test_pytest_mg_importable_in_subprocess(pytester: pytest.Pytester) -> None:
