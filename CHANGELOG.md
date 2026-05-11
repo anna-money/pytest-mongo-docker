@@ -11,6 +11,7 @@
 * Extract container lifecycle into private `_start_mongo_container` context manager. `run_mongo` and `run_mongo_replicaset` now share Docker client setup, image pull, port allocation, container creation/start, readiness poll, and teardown; the RS path adds only `replSetInitiate` + primary-election wait on top. Teardown is now best-effort for both fixtures — kill/remove errors during cleanup never fail tests
 * Split `pytest_mg.fixtures` into `pytest_mg.runners` (container lifecycle: `Mongo`, `run_mongo`, `run_mongo_replicaset`) and `pytest_mg.fixtures` (pytest fixture wrappers only). Public API (`pytest_mg.Mongo`, `pytest_mg.run_mongo`, `pytest_mg.run_mongo_replicaset`) is unchanged
 * `make coverage`: switch from `pytest --cov` to `coverage run -m pytest` so coverage starts before the `pytest11` plugin loads. Reported coverage rises from ~57% to ~95% — the previous number was a measurement artifact; module-level imports and `def` lines were running before pytest-cov activated
+* Parametrize integration smoke tests over `mongo` and `mongo_*_rs` fixtures, so the previously-untested `mongo_5_rs`, `mongo_7_rs`, and `mongo_8_rs` wrappers are now exercised. Coverage reaches 99%
 
 ## v0.0.8 (2026-05-08)
 
