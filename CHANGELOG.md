@@ -12,7 +12,7 @@
 * Split `pytest_mg.fixtures` into `pytest_mg.runners` (container lifecycle: `Mongo`, `run_mongo`, `run_mongo_replicaset`) and `pytest_mg.fixtures` (pytest fixture wrappers only). Public API (`pytest_mg.Mongo`, `pytest_mg.run_mongo`, `pytest_mg.run_mongo_replicaset`) is unchanged
 * `make coverage`: switch from `pytest --cov` to `coverage run -m pytest` so coverage starts before the `pytest11` plugin loads. Reported coverage rises from ~57% to ~95% — the previous number was a measurement artifact; module-level imports and `def` lines were running before pytest-cov activated
 * Parametrize integration smoke tests over `mongo` and `mongo_*_rs` fixtures, so the previously-untested `mongo_5_rs`, `mongo_7_rs`, and `mongo_8_rs` wrappers are now exercised. Coverage reaches 99%
-* `is_mongo_ready`: after a successful socket probe, optionally verify the server is serving wire commands via `pymongo.admin.command("ping")` (with `directConnection=True` so it works on uninitiated replica-set nodes). Falls back to socket-only when pymongo is not installed
+* `is_mongo_ready`: prefer a real `pymongo.admin.command("ping")` (with `directConnection=True` so it works on uninitiated replica-set nodes) when pymongo is installed. Falls back to a raw `socket.create_connection` probe when pymongo is absent
 
 ## v0.0.8 (2026-05-08)
 
