@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 pytest_plugins = ("pytester",)
@@ -7,7 +9,8 @@ def test_mongo_fixtures_discoverable_via_entrypoint(pytester: pytest.Pytester) -
     result = pytester.runpytest("--fixtures", "-q")
     assert result.ret == 0
     output = result.stdout.str()
-    # Order-agnostic: every fixture name must appear somewhere in the listing.
+    # pytest --fixtures lists each as `name [scope scope] -- path:line`.
+    # Anchor on `name [` so e.g. "mongo" doesn't spuriously match `mongo_6_rs`.
     for name in (
         "mongo",
         "mongo_5",
@@ -20,7 +23,8 @@ def test_mongo_fixtures_discoverable_via_entrypoint(pytester: pytest.Pytester) -
         "mongo_7_rs",
         "mongo_8_rs",
     ):
-        assert name in output, f"fixture {name!r} not listed in `pytest --fixtures` output"
+        pattern = rf"(?m)^{re.escape(name)}\s+\["
+        assert re.search(pattern, output), f"fixture {name!r} not listed in `pytest --fixtures` output"
 
 
 def test_pytest_mg_importable_in_subprocess(pytester: pytest.Pytester) -> None:
