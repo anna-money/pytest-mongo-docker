@@ -14,31 +14,35 @@ except ImportError:
 
 
 def is_mongo_ready(*, host: str, port: int, timeout: float = 1.0) -> bool:
-    # Prefer a real wire-protocol ping when pymongo is available — proves
-    # mongod is actually serving commands, not just accepting TCP.
-    # directConnection=True bypasses topology discovery so this also works
-    # on uninitiated replica-set nodes.
-    if _HAS_PYMONGO:
-        client: _pymongo.MongoClient[Any] = _pymongo.MongoClient(
-            host=host,
-            port=port,
-            serverSelectionTimeoutMS=int(timeout * 1000),
-            directConnection=True,
-        )
-        try:
-            client.admin.command("ping")
-            return True
-        except _pymongo_errors.PyMongoError:
-            return False
-        finally:
-            client.close()
-
-    # Fallback when pymongo is not installed: raw socket probe.
+    # Cheap TCP probe first — fails in microseconds while mongod is still
+    # booting, avoiding the ~100ms pymongo MongoClient + topology cost on
+    # every poll attempt during the warm-up window.
     try:
         with socket.create_connection((host, port), timeout=timeout):
-            return True
+            pass
     except OSError:
         return False
+
+    # Socket-open only proves mongod opened its listener. When pymongo is
+    # installed, verify it's actually serving wire commands.
+    # directConnection=True bypasses topology discovery so this also works
+    # on uninitiated replica-set nodes.
+    if not _HAS_PYMONGO:
+        return True
+
+    client: _pymongo.MongoClient[Any] = _pymongo.MongoClient(
+        host=host,
+        port=port,
+        serverSelectionTimeoutMS=int(timeout * 1000),
+        directConnection=True,
+    )
+    try:
+        client.admin.command("ping")
+        return True
+    except _pymongo_errors.PyMongoError:
+        return False
+    finally:
+        client.close()
 
 
 def find_unused_local_port() -> int:
