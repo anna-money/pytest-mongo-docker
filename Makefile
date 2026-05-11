@@ -29,7 +29,10 @@ test: deps
 	@uv run $(UV_EXTRA_ARGS) pytest -vv --rootdir tests .
 
 coverage: deps
-	@uv run $(UV_EXTRA_ARGS) pytest --cov=pytest_mg --cov-report=term-missing --cov-report=xml --rootdir tests .
+	@uv run $(UV_EXTRA_ARGS) coverage erase
+	@uv run $(UV_EXTRA_ARGS) coverage run -m pytest --rootdir tests .
+	@uv run $(UV_EXTRA_ARGS) coverage report --show-missing
+	@uv run $(UV_EXTRA_ARGS) coverage xml
 
 build: uv
 	@uv build
