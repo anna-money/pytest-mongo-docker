@@ -61,7 +61,7 @@ def _start_mongo_container(
         while time.monotonic() < deadline:
             if is_mongo_ready(host=LOCALHOST, port=port):
                 break
-            time.sleep(0.01)
+            time.sleep(0.1)
         else:
             container_logs = docker_client.logs(container["Id"]).decode()
             pytest.fail(f"Failed to start mongo using {image} in {ready_timeout} seconds: {container_logs}")
@@ -133,7 +133,7 @@ def run_mongo_replicaset(
                     # `hello` can raise mid-election (NotMasterError, network
                     # reset); ignore and keep polling until the deadline.
                     pass
-                time.sleep(0.01)
+                time.sleep(0.1)
             else:
                 pytest.fail(f"MongoDB replica set did not become primary in {ready_timeout} seconds")
         finally:
