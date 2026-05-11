@@ -114,6 +114,8 @@ def run_mongo_replicaset(
             f"mongodb://{LOCALHOST}:{mongo.port}/", directConnection=True
         )
         try:
+            # Bootstrap the replica set with a single member. Idempotent only
+            # on a fresh data dir; tmpfs gives us that on every container start.
             client.admin.command(
                 "replSetInitiate",
                 {"_id": replica_set, "members": [{"_id": 0, "host": "127.0.0.1:27017"}]},
@@ -122,9 +124,14 @@ def run_mongo_replicaset(
             deadline = time.monotonic() + ready_timeout
             while time.monotonic() < deadline:
                 try:
+                    # Poll node state: writes are only accepted after the
+                    # member transitions to PRIMARY (isWritablePrimary=True).
+                    # Election can take a few hundred ms after initiate.
                     if client.admin.command("hello").get("isWritablePrimary"):
                         break
                 except Exception:
+                    # `hello` can raise mid-election (NotMasterError, network
+                    # reset); ignore and keep polling until the deadline.
                     pass
                 time.sleep(0.1)
             else:
