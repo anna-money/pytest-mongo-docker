@@ -1,4 +1,3 @@
-import asyncio
 import os
 import shutil
 import socket
@@ -35,32 +34,6 @@ def _try_get_is_mongo_ready_based_on_pymongo() -> IsReadyFunc | None:
         return None
 
 
-def _try_get_is_mongo_ready_based_on_motor() -> IsReadyFunc | None:
-    try:
-        # noinspection PyPackageRequirements
-        import motor.motor_asyncio
-        import pymongo.errors
-
-        def _is_mongo_ready(**params: Any) -> bool:
-            async def _is_mongo_ready_async() -> bool:
-                try:
-                    client: motor.motor_asyncio.AsyncIOMotorClient[Any] = motor.motor_asyncio.AsyncIOMotorClient(
-                        **params, serverSelectionTimeoutMS=300
-                    )
-                    await client.admin.command("ping")
-                    client.close()
-                    return True
-                except pymongo.errors.ServerSelectionTimeoutError:
-                    return False
-
-            return asyncio.run(_is_mongo_ready_async())
-
-        return _is_mongo_ready
-
-    except ImportError:
-        return None
-
-
 def _get_dummy_is_mongo_ready() -> IsReadyFunc:
     def _is_mongo_ready(**_: Any) -> bool:
         return True
@@ -68,11 +41,7 @@ def _get_dummy_is_mongo_ready() -> IsReadyFunc:
     return _is_mongo_ready
 
 
-is_mongo_ready = (
-    _try_get_is_mongo_ready_based_on_pymongo()
-    or _try_get_is_mongo_ready_based_on_motor()
-    or _get_dummy_is_mongo_ready()
-)
+is_mongo_ready = _try_get_is_mongo_ready_based_on_pymongo() or _get_dummy_is_mongo_ready()
 
 
 def find_unused_local_port() -> int:
