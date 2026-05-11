@@ -1,4 +1,4 @@
-.PHONY: all uv deps lint test ruff ruff-fix format mypy build
+.PHONY: all uv deps lint test ruff ruff-fix format mypy build coverage
 
 UV_EXTRA_ARGS ?=
 
@@ -27,6 +27,9 @@ lint: ruff mypy
 
 test: deps
 	@uv run $(UV_EXTRA_ARGS) pytest -vv --rootdir tests .
+
+coverage: deps
+	@uv run $(UV_EXTRA_ARGS) pytest --cov=pytest_mg --cov-report=term-missing --cov-report=xml --rootdir tests .
 
 build: uv
 	@uv build

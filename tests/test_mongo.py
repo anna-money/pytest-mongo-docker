@@ -6,7 +6,14 @@ import pytest_mg
 
 
 def test_mongo(mongo: pytest_mg.Mongo) -> None:
-    assert mongo
+    # Prove the container actually serves traffic, not just that the
+    # fixture returned a non-falsy object.
+    client: pymongo.MongoClient[Any] = pymongo.MongoClient(f"mongodb://{mongo.host}:{mongo.port}/")
+    try:
+        response = client.admin.command("ping")
+        assert response["ok"] == 1.0
+    finally:
+        client.close()
 
 
 def test_mongo_5(mongo_5: pytest_mg.Mongo) -> None:
@@ -25,11 +32,11 @@ def test_mongo_8(mongo_8: pytest_mg.Mongo) -> None:
     assert mongo_8
 
 
-def test_mongo_6_rs(mongo_6_rs: pytest_mg.Mongo) -> None:
+def _assert_replicaset_functional(mongo: pytest_mg.Mongo) -> None:
     # Verify the replica set is functional by opening a change stream,
     # which requires a replica set and fails on standalone MongoDB.
     client: pymongo.MongoClient[Any] = pymongo.MongoClient(
-        f"mongodb://{mongo_6_rs.host}:{mongo_6_rs.port}/",
+        f"mongodb://{mongo.host}:{mongo.port}/",
         directConnection=True,
     )
     try:
@@ -39,3 +46,11 @@ def test_mongo_6_rs(mongo_6_rs: pytest_mg.Mongo) -> None:
             pass
     finally:
         client.close()
+
+
+def test_mongo_rs(mongo_rs: pytest_mg.Mongo) -> None:
+    _assert_replicaset_functional(mongo_rs)
+
+
+def test_mongo_6_rs(mongo_6_rs: pytest_mg.Mongo) -> None:
+    _assert_replicaset_functional(mongo_6_rs)

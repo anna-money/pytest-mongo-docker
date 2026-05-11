@@ -23,6 +23,22 @@ jobs:
     - run: make deps
     - run: make lint
 
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: lint
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - uses: astral-sh/setup-uv@v7
+      with:
+        python-version: "3.13"
+    - run: make deps
+    - run: make coverage
+
   test:
     name: Test
     runs-on: ubuntu-latest
