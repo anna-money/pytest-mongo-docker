@@ -3,7 +3,8 @@
 * No runtime changes. Test suite expanded with mocked unit tests for `is_mongo_ready` driver selection, `find_unused_local_port`, `_ensure_image`, and `run_mongo` / `run_mongo_replicaset` cleanup and error paths
 * Added `pytester`-based test verifying `pytest11` entry-point registration (catches packaging regressions)
 * Standalone `mongo` fixture now pings the container; replica-set smoke broadened to `mongo_rs` (latest) in addition to `mongo_6_rs`
-* Added `pytest-cov` dev dep, `make coverage` target, and an advisory CI coverage job (no threshold enforced)
+* Added `pytest-cov` dev dep and local `make coverage` target (no CI job, no threshold enforced)
+* CI: scope `setup-uv` cache per matrix cell (`cache-suffix`) to avoid `setup-uv-2-…` cache-reservation race warnings across parallel Python/pytest jobs
 
 ## v0.0.8 (2026-05-08)
 
