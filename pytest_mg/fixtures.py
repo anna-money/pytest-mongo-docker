@@ -36,7 +36,6 @@ def _start_mongo_container(
     name_prefix: str,
     command: list[str],
     ready_timeout: float,
-    suppress_cleanup: bool = False,
 ) -> Generator[Mongo, None, None]:
     docker_client = docker.APIClient(base_url=resolve_docker_host(), version="auto")
     _ensure_image(docker_client, image)
@@ -71,12 +70,11 @@ def _start_mongo_container(
 
         yield Mongo(host=LOCALHOST, port=port)
     finally:
-        # Replica-set teardown can race with Docker (network already torn down,
-        # container exited non-zero); suppress to keep teardown idempotent.
-        suppressor: Any = contextlib.suppress(Exception) if suppress_cleanup else contextlib.nullcontext()
-        with suppressor:
+        # Teardown is best-effort: Docker errors (network already torn down,
+        # container exited non-zero) must not fail tests.
+        with contextlib.suppress(Exception):
             docker_client.kill(container=container["Id"])
-        with suppressor:
+        with contextlib.suppress(Exception):
             docker_client.remove_container(container["Id"], v=True)
 
 
@@ -107,7 +105,6 @@ def run_mongo_replicaset(
         name_prefix="pytest-mongo-rs",
         command=["mongod", "--bind_ip_all", "--replSet", replica_set, "--quiet"],
         ready_timeout=ready_timeout,
-        suppress_cleanup=True,
     ) as mongo:
         # Initiate the replica set. The member host must be 127.0.0.1:27017
         # (the container-internal port) so MongoDB can reach itself for
