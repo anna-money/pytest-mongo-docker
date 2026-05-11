@@ -1,3 +1,20 @@
+## v0.0.9 (2026-05-08)
+
+* No runtime changes. Test suite expanded with mocked unit tests for `is_mongo_ready` driver selection, `find_unused_local_port`, `_ensure_image`, and `run_mongo` / `run_mongo_replicaset` cleanup and error paths
+* Added `pytester`-based test verifying `pytest11` entry-point registration (catches packaging regressions)
+* Standalone `mongo` fixture now pings the container; replica-set smoke broadened to `mongo_rs` (latest) in addition to `mongo_6_rs`
+* Added `pytest-cov` dev dep and local `make coverage` target (no CI job, no threshold enforced)
+* CI: scope `setup-uv` cache per matrix cell (`cache-suffix`) to avoid `setup-uv-2-…` cache-reservation race warnings across parallel Python/pytest jobs
+* Refactor tests: split `test_utils.py` by SUT into `test_resolve_docker_host.py`, `test_find_unused_local_port.py`, `test_is_mongo_ready.py`; rename `test_fixtures_unit.py` → `test_fixtures.py`; drop duplicated `test_utils_more.py` and `test_is_mongo_ready_selection.py`; consolidate ping helper in `test_mongo.py`
+* Remove `motor` branch from `is_mongo_ready` selection chain. `motor` hard-depends on `pymongo`, so the pymongo factory always wins first — the motor branch was unreachable. Chain is now `pymongo > dummy`; drop the now-private `_try_get_is_mongo_ready_based_on_motor` helper and its tests
+* Replace pymongo-based `is_mongo_ready` ping with a raw `socket.create_connection` probe. Drops the driver-selection chain (`_try_get_is_mongo_ready_based_on_pymongo`, `_get_dummy_is_mongo_ready`, `IsReadyFunc` protocol). `run_mongo_replicaset` now reuses the same readiness helper instead of an inline socket loop
+* Extract container lifecycle into private `_start_mongo_container` context manager. `run_mongo` and `run_mongo_replicaset` now share Docker client setup, image pull, port allocation, container creation/start, readiness poll, and teardown; the RS path adds only `replSetInitiate` + primary-election wait on top. Teardown is now best-effort for both fixtures — kill/remove errors during cleanup never fail tests
+* Split `pytest_mg.fixtures` into `pytest_mg.runners` (container lifecycle: `Mongo`, `run_mongo`, `run_mongo_replicaset`) and `pytest_mg.fixtures` (pytest fixture wrappers only). Public API (`pytest_mg.Mongo`, `pytest_mg.run_mongo`, `pytest_mg.run_mongo_replicaset`) is unchanged
+* `make coverage`: switch from `pytest --cov` to `coverage run -m pytest` so coverage starts before the `pytest11` plugin loads. Reported coverage rises from ~57% to ~95% — the previous number was a measurement artifact; module-level imports and `def` lines were running before pytest-cov activated
+* Parametrize integration smoke tests over `mongo` and `mongo_*_rs` fixtures, so the previously-untested `mongo_5_rs`, `mongo_7_rs`, and `mongo_8_rs` wrappers are now exercised. Coverage reaches 99%
+* `is_mongo_ready`: cheap `socket.create_connection` probe first; on success, when pymongo is installed, verify the server is serving wire commands via `admin.command("ping")` (with `directConnection=True` so it works on uninitiated replica-set nodes). Falls back to socket-only when pymongo is absent. Socket-first short-circuits poll cycles during mongod warm-up (avoids ~100ms pymongo MongoClient + topology cost while the TCP listener is still down)
+* Tests: cover the `ImportError` branch of the pymongo optional import and the mid-election retry branch in `run_mongo_replicaset`'s `hello` poll. Coverage reaches 100%
+
 ## v0.0.8 (2026-05-08)
 
 * Skip `docker pull` when image already present locally (inspect first, pull only on `ImageNotFound`)

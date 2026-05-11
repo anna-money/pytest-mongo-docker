@@ -51,6 +51,8 @@ jobs:
       with:
         fetch-depth: 0
     - uses: astral-sh/setup-uv@v7
+      with:
+        cache-suffix: py${{ matrix.python }}-job${{ strategy.job-index }}
     - run: echo ${{ matrix.python }} > .python-version
     - run: make deps
     - run: make test

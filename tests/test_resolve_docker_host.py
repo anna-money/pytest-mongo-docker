@@ -5,20 +5,20 @@ from unittest import mock
 from pytest_mg.utils import resolve_docker_host
 
 
-def test_resolve_docker_host_returns_env_when_set(monkeypatch: Any) -> None:
+def test_returns_env_when_set(monkeypatch: Any) -> None:
     monkeypatch.setenv("DOCKER_HOST", "tcp://example:2375")
     with mock.patch("pytest_mg.utils.subprocess.run") as run:
         assert resolve_docker_host() == "tcp://example:2375"
     run.assert_not_called()
 
 
-def test_resolve_docker_host_returns_none_when_cli_missing(monkeypatch: Any) -> None:
+def test_returns_none_when_cli_missing(monkeypatch: Any) -> None:
     monkeypatch.delenv("DOCKER_HOST", raising=False)
     with mock.patch("pytest_mg.utils.shutil.which", return_value=None):
         assert resolve_docker_host() is None
 
 
-def test_resolve_docker_host_reads_active_context(monkeypatch: Any) -> None:
+def test_reads_active_context(monkeypatch: Any) -> None:
     monkeypatch.delenv("DOCKER_HOST", raising=False)
     completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="unix:///tmp/colima.sock\n", stderr="")
     with (
@@ -30,7 +30,7 @@ def test_resolve_docker_host_reads_active_context(monkeypatch: Any) -> None:
     assert args[0] == ["docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}"]
 
 
-def test_resolve_docker_host_returns_none_on_empty_output(monkeypatch: Any) -> None:
+def test_returns_none_on_empty_output(monkeypatch: Any) -> None:
     monkeypatch.delenv("DOCKER_HOST", raising=False)
     completed = subprocess.CompletedProcess(args=[], returncode=0, stdout="\n", stderr="")
     with (
@@ -40,7 +40,7 @@ def test_resolve_docker_host_returns_none_on_empty_output(monkeypatch: Any) -> N
         assert resolve_docker_host() is None
 
 
-def test_resolve_docker_host_returns_none_on_cli_error(monkeypatch: Any) -> None:
+def test_returns_none_on_cli_error(monkeypatch: Any) -> None:
     monkeypatch.delenv("DOCKER_HOST", raising=False)
     err = subprocess.CalledProcessError(returncode=1, cmd=["docker"])
     with (
@@ -50,7 +50,7 @@ def test_resolve_docker_host_returns_none_on_cli_error(monkeypatch: Any) -> None
         assert resolve_docker_host() is None
 
 
-def test_resolve_docker_host_returns_none_on_timeout(monkeypatch: Any) -> None:
+def test_returns_none_on_timeout(monkeypatch: Any) -> None:
     monkeypatch.delenv("DOCKER_HOST", raising=False)
     err = subprocess.TimeoutExpired(cmd=["docker"], timeout=5)
     with (

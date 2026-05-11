@@ -1,78 +1,48 @@
-import asyncio
 import os
 import shutil
 import socket
 import subprocess
-from typing import Any, Protocol
+from typing import Any
+
+try:
+    import pymongo as _pymongo
+    import pymongo.errors as _pymongo_errors
+
+    _HAS_PYMONGO = True
+except ImportError:
+    _HAS_PYMONGO = False
 
 
-class IsReadyFunc(Protocol):
-    def __call__(
-        self,
-        *,
-        host: str,
-        port: int,
-    ) -> bool: ...
-
-
-def _try_get_is_mongo_ready_based_on_pymongo() -> IsReadyFunc | None:
+def is_mongo_ready(*, host: str, port: int, timeout: float = 1.0) -> bool:
+    # Cheap TCP probe first — fails in microseconds while mongod is still
+    # booting, avoiding the ~100ms pymongo MongoClient + topology cost on
+    # every poll attempt during the warm-up window.
     try:
-        # noinspection PyPackageRequirements
-        import pymongo
-        import pymongo.errors
+        with socket.create_connection((host, port), timeout=timeout):
+            pass
+    except OSError:
+        return False
 
-        def _is_mongo_ready(**params: Any) -> bool:
-            try:
-                client: pymongo.MongoClient[Any] = pymongo.MongoClient(**params, serverSelectionTimeoutMS=300)
-                client.admin.command("ping")
-                client.close()
-                return True
-            except pymongo.errors.ServerSelectionTimeoutError:
-                return False
-
-        return _is_mongo_ready
-    except ImportError:
-        return None
-
-
-def _try_get_is_mongo_ready_based_on_motor() -> IsReadyFunc | None:
-    try:
-        # noinspection PyPackageRequirements
-        import motor.motor_asyncio
-        import pymongo.errors
-
-        def _is_mongo_ready(**params: Any) -> bool:
-            async def _is_mongo_ready_async() -> bool:
-                try:
-                    client: motor.motor_asyncio.AsyncIOMotorClient[Any] = motor.motor_asyncio.AsyncIOMotorClient(
-                        **params, serverSelectionTimeoutMS=300
-                    )
-                    await client.admin.command("ping")
-                    client.close()
-                    return True
-                except pymongo.errors.ServerSelectionTimeoutError:
-                    return False
-
-            return asyncio.run(_is_mongo_ready_async())
-
-        return _is_mongo_ready
-
-    except ImportError:
-        return None
-
-
-def _get_dummy_is_mongo_ready() -> IsReadyFunc:
-    def _is_mongo_ready(**_: Any) -> bool:
+    # Socket-open only proves mongod opened its listener. When pymongo is
+    # installed, verify it's actually serving wire commands.
+    # directConnection=True bypasses topology discovery so this also works
+    # on uninitiated replica-set nodes.
+    if not _HAS_PYMONGO:
         return True
 
-    return _is_mongo_ready
-
-
-is_mongo_ready = (
-    _try_get_is_mongo_ready_based_on_pymongo()
-    or _try_get_is_mongo_ready_based_on_motor()
-    or _get_dummy_is_mongo_ready()
-)
+    client: _pymongo.MongoClient[Any] = _pymongo.MongoClient(
+        host=host,
+        port=port,
+        serverSelectionTimeoutMS=int(timeout * 1000),
+        directConnection=True,
+    )
+    try:
+        client.admin.command("ping")
+        return True
+    except _pymongo_errors.PyMongoError:
+        return False
+    finally:
+        client.close()
 
 
 def find_unused_local_port() -> int:

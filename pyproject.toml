@@ -53,6 +53,7 @@ dev = [
     "mypy==2.0.0",
     "pymongo==4.17.0",
     "pytest==9.0.3",
+    "pytest-cov==7.1.0",
     "ruff==0.15.12",
 ]
 
@@ -90,4 +91,17 @@ select = [
     "G",    # flake8-logging-format
     "T20",  # flake8-print
     "UP",   # pyupgrade
+]
+
+[tool.coverage.run]
+source = ["pytest_mg"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
 ]

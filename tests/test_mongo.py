@@ -1,35 +1,25 @@
 from typing import Any
 
 import pymongo
+import pytest
 
 import pytest_mg
 
 
-def test_mongo(mongo: pytest_mg.Mongo) -> None:
-    assert mongo
+def _ping(mongo: pytest_mg.Mongo) -> None:
+    client: pymongo.MongoClient[Any] = pymongo.MongoClient(f"mongodb://{mongo.host}:{mongo.port}/")
+    try:
+        response = client.admin.command("ping")
+        assert response["ok"] == 1.0
+    finally:
+        client.close()
 
 
-def test_mongo_5(mongo_5: pytest_mg.Mongo) -> None:
-    assert mongo_5
-
-
-def test_mongo_6(mongo_6: pytest_mg.Mongo) -> None:
-    assert mongo_6
-
-
-def test_mongo_7(mongo_7: pytest_mg.Mongo) -> None:
-    assert mongo_7
-
-
-def test_mongo_8(mongo_8: pytest_mg.Mongo) -> None:
-    assert mongo_8
-
-
-def test_mongo_6_rs(mongo_6_rs: pytest_mg.Mongo) -> None:
+def _assert_replicaset_functional(mongo: pytest_mg.Mongo) -> None:
     # Verify the replica set is functional by opening a change stream,
     # which requires a replica set and fails on standalone MongoDB.
     client: pymongo.MongoClient[Any] = pymongo.MongoClient(
-        f"mongodb://{mongo_6_rs.host}:{mongo_6_rs.port}/",
+        f"mongodb://{mongo.host}:{mongo.port}/",
         directConnection=True,
     )
     try:
@@ -39,3 +29,15 @@ def test_mongo_6_rs(mongo_6_rs: pytest_mg.Mongo) -> None:
             pass
     finally:
         client.close()
+
+
+@pytest.mark.parametrize("fixture_name", ["mongo", "mongo_5", "mongo_6", "mongo_7", "mongo_8"])
+def test_mongo_standalone(request: pytest.FixtureRequest, fixture_name: str) -> None:
+    mongo: pytest_mg.Mongo = request.getfixturevalue(fixture_name)
+    _ping(mongo)
+
+
+@pytest.mark.parametrize("fixture_name", ["mongo_rs", "mongo_5_rs", "mongo_6_rs", "mongo_7_rs", "mongo_8_rs"])
+def test_mongo_replicaset(request: pytest.FixtureRequest, fixture_name: str) -> None:
+    mongo: pytest_mg.Mongo = request.getfixturevalue(fixture_name)
+    _assert_replicaset_functional(mongo)
