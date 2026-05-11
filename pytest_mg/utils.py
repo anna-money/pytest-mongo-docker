@@ -2,14 +2,45 @@ import os
 import shutil
 import socket
 import subprocess
+from typing import Any
+
+try:
+    import pymongo as _pymongo
+    import pymongo.errors as _pymongo_errors
+
+    _HAS_PYMONGO = True
+except ImportError:
+    _HAS_PYMONGO = False
 
 
 def is_mongo_ready(*, host: str, port: int, timeout: float = 1.0) -> bool:
+    # Cheap socket probe first — fails fast while mongod is still booting.
     try:
         with socket.create_connection((host, port), timeout=timeout):
-            return True
+            pass
     except OSError:
         return False
+
+    # If pymongo is installed, upgrade the check: a successful TCP connect
+    # only proves mongod opened its listener, not that it's serving wire
+    # commands. directConnection=True bypasses topology discovery so this
+    # works on uninitiated replica-set nodes too.
+    if not _HAS_PYMONGO:
+        return True
+
+    client: _pymongo.MongoClient[Any] = _pymongo.MongoClient(
+        host=host,
+        port=port,
+        serverSelectionTimeoutMS=int(timeout * 1000),
+        directConnection=True,
+    )
+    try:
+        client.admin.command("ping")
+        return True
+    except _pymongo_errors.PyMongoError:
+        return False
+    finally:
+        client.close()
 
 
 def find_unused_local_port() -> int:
