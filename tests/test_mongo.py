@@ -5,31 +5,13 @@ import pymongo
 import pytest_mg
 
 
-def test_mongo(mongo: pytest_mg.Mongo) -> None:
-    # Prove the container actually serves traffic, not just that the
-    # fixture returned a non-falsy object.
+def _ping(mongo: pytest_mg.Mongo) -> None:
     client: pymongo.MongoClient[Any] = pymongo.MongoClient(f"mongodb://{mongo.host}:{mongo.port}/")
     try:
         response = client.admin.command("ping")
         assert response["ok"] == 1.0
     finally:
         client.close()
-
-
-def test_mongo_5(mongo_5: pytest_mg.Mongo) -> None:
-    assert mongo_5
-
-
-def test_mongo_6(mongo_6: pytest_mg.Mongo) -> None:
-    assert mongo_6
-
-
-def test_mongo_7(mongo_7: pytest_mg.Mongo) -> None:
-    assert mongo_7
-
-
-def test_mongo_8(mongo_8: pytest_mg.Mongo) -> None:
-    assert mongo_8
 
 
 def _assert_replicaset_functional(mongo: pytest_mg.Mongo) -> None:
@@ -46,6 +28,26 @@ def _assert_replicaset_functional(mongo: pytest_mg.Mongo) -> None:
             pass
     finally:
         client.close()
+
+
+def test_mongo(mongo: pytest_mg.Mongo) -> None:
+    _ping(mongo)
+
+
+def test_mongo_5(mongo_5: pytest_mg.Mongo) -> None:
+    _ping(mongo_5)
+
+
+def test_mongo_6(mongo_6: pytest_mg.Mongo) -> None:
+    _ping(mongo_6)
+
+
+def test_mongo_7(mongo_7: pytest_mg.Mongo) -> None:
+    _ping(mongo_7)
+
+
+def test_mongo_8(mongo_8: pytest_mg.Mongo) -> None:
+    _ping(mongo_8)
 
 
 def test_mongo_rs(mongo_rs: pytest_mg.Mongo) -> None:

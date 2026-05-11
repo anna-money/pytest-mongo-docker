@@ -5,6 +5,7 @@
 * Standalone `mongo` fixture now pings the container; replica-set smoke broadened to `mongo_rs` (latest) in addition to `mongo_6_rs`
 * Added `pytest-cov` dev dep and local `make coverage` target (no CI job, no threshold enforced)
 * CI: scope `setup-uv` cache per matrix cell (`cache-suffix`) to avoid `setup-uv-2-…` cache-reservation race warnings across parallel Python/pytest jobs
+* Refactor tests: split `test_utils.py` by SUT into `test_resolve_docker_host.py`, `test_find_unused_local_port.py`, `test_is_mongo_ready.py`; rename `test_fixtures_unit.py` → `test_fixtures.py`; drop duplicated `test_utils_more.py` and `test_is_mongo_ready_selection.py`; consolidate ping helper in `test_mongo.py`
 
 ## v0.0.8 (2026-05-08)
 
