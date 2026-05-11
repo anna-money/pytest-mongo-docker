@@ -2,46 +2,14 @@ import os
 import shutil
 import socket
 import subprocess
-from typing import Any, Protocol
 
 
-class IsReadyFunc(Protocol):
-    def __call__(
-        self,
-        *,
-        host: str,
-        port: int,
-    ) -> bool: ...
-
-
-def _try_get_is_mongo_ready_based_on_pymongo() -> IsReadyFunc | None:
+def is_mongo_ready(*, host: str, port: int, timeout: float = 1.0) -> bool:
     try:
-        # noinspection PyPackageRequirements
-        import pymongo
-        import pymongo.errors
-
-        def _is_mongo_ready(**params: Any) -> bool:
-            try:
-                client: pymongo.MongoClient[Any] = pymongo.MongoClient(**params, serverSelectionTimeoutMS=300)
-                client.admin.command("ping")
-                client.close()
-                return True
-            except pymongo.errors.ServerSelectionTimeoutError:
-                return False
-
-        return _is_mongo_ready
-    except ImportError:
-        return None
-
-
-def _get_dummy_is_mongo_ready() -> IsReadyFunc:
-    def _is_mongo_ready(**_: Any) -> bool:
-        return True
-
-    return _is_mongo_ready
-
-
-is_mongo_ready = _try_get_is_mongo_ready_based_on_pymongo() or _get_dummy_is_mongo_ready()
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
 def find_unused_local_port() -> int:

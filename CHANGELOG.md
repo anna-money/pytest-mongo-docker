@@ -7,6 +7,7 @@
 * CI: scope `setup-uv` cache per matrix cell (`cache-suffix`) to avoid `setup-uv-2-…` cache-reservation race warnings across parallel Python/pytest jobs
 * Refactor tests: split `test_utils.py` by SUT into `test_resolve_docker_host.py`, `test_find_unused_local_port.py`, `test_is_mongo_ready.py`; rename `test_fixtures_unit.py` → `test_fixtures.py`; drop duplicated `test_utils_more.py` and `test_is_mongo_ready_selection.py`; consolidate ping helper in `test_mongo.py`
 * Remove `motor` branch from `is_mongo_ready` selection chain. `motor` hard-depends on `pymongo`, so the pymongo factory always wins first — the motor branch was unreachable. Chain is now `pymongo > dummy`; drop the now-private `_try_get_is_mongo_ready_based_on_motor` helper and its tests
+* Replace pymongo-based `is_mongo_ready` ping with a raw `socket.create_connection` probe. Drops the driver-selection chain (`_try_get_is_mongo_ready_based_on_pymongo`, `_get_dummy_is_mongo_ready`, `IsReadyFunc` protocol). `run_mongo_replicaset` now reuses the same readiness helper instead of an inline socket loop
 
 ## v0.0.8 (2026-05-08)
 

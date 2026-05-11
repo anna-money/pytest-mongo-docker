@@ -1,6 +1,5 @@
 import contextlib
 import dataclasses
-import socket
 import time
 import uuid
 from collections.abc import Generator
@@ -111,15 +110,11 @@ def run_mongo_replicaset(
     try:
         docker_client.start(container=container["Id"])
 
-        # Use a socket check rather than is_mongo_ready: pymongo's topology
-        # discovery times out against an uninitiated RS-mode MongoDB instance.
         deadline = time.monotonic() + ready_timeout
         while time.monotonic() < deadline:
-            try:
-                with socket.create_connection((LOCALHOST, port), timeout=1.0):
-                    break
-            except OSError:
-                time.sleep(0.1)
+            if is_mongo_ready(host=LOCALHOST, port=port):
+                break
+            time.sleep(0.1)
         else:
             container_logs = docker_client.logs(container["Id"]).decode()
             pytest.fail(f"Failed to start mongo using {image} in {ready_timeout} seconds: {container_logs}")

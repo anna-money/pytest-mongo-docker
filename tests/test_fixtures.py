@@ -82,11 +82,11 @@ def test_run_mongo_replicaset_raises_when_pymongo_missing() -> None:
                 pass  # pragma: no cover
 
 
-def test_run_mongo_replicaset_socket_timeout_pytest_fail() -> None:
+def test_run_mongo_replicaset_pytest_fail_on_readiness_timeout() -> None:
     client = _make_mock_apiclient()
     with (
         mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.socket.create_connection", side_effect=OSError("conn refused")),
+        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=False),
         pytest.raises(_pytest.outcomes.Failed) as excinfo,
     ):
         with run_mongo_replicaset("mongo:latest", ready_timeout=0.05):
@@ -100,11 +100,6 @@ def test_run_mongo_replicaset_socket_timeout_pytest_fail() -> None:
 
 def test_run_mongo_replicaset_primary_election_timeout_pytest_fail() -> None:
     client = _make_mock_apiclient()
-
-    fake_socket = mock.MagicMock()
-    fake_socket.__enter__ = mock.MagicMock(return_value=fake_socket)
-    fake_socket.__exit__ = mock.MagicMock(return_value=False)
-
     pymongo_client = mock.MagicMock()
 
     def _admin_command(name: str, *args: Any, **kwargs: Any) -> Any:
@@ -118,7 +113,7 @@ def test_run_mongo_replicaset_primary_election_timeout_pytest_fail() -> None:
 
     with (
         mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.socket.create_connection", return_value=fake_socket),
+        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=True),
         mock.patch("pymongo.MongoClient", return_value=pymongo_client),
         pytest.raises(_pytest.outcomes.Failed) as excinfo,
     ):
@@ -139,36 +134,8 @@ def test_run_mongo_replicaset_cleanup_swallows_kill_exception() -> None:
 
     with (
         mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.socket.create_connection", side_effect=OSError),
+        mock.patch("pytest_mg.fixtures.is_mongo_ready", return_value=False),
         pytest.raises(_pytest.outcomes.Failed),
     ):
         with run_mongo_replicaset("mongo:latest", ready_timeout=0.01):
             pytest.fail("should not reach yield")  # pragma: no cover
-
-
-def test_socket_used_for_replicaset_readiness_not_pymongo() -> None:
-    """Sanity: replicaset path checks port via raw socket, not is_mongo_ready,
-    because pymongo's topology discovery times out on uninitiated RS nodes."""
-    client = _make_mock_apiclient()
-
-    fake_socket = mock.MagicMock()
-    fake_socket.__enter__ = mock.MagicMock(return_value=fake_socket)
-    fake_socket.__exit__ = mock.MagicMock(return_value=False)
-    create_conn = mock.MagicMock(return_value=fake_socket)
-
-    pymongo_client = mock.MagicMock()
-    pymongo_client.admin.command.return_value = {"ok": 1.0, "isWritablePrimary": True}
-
-    is_mongo_ready_mock = mock.MagicMock(return_value=True)
-
-    with (
-        mock.patch("pytest_mg.fixtures.docker.APIClient", return_value=client),
-        mock.patch("pytest_mg.fixtures.socket.create_connection", create_conn),
-        mock.patch("pytest_mg.fixtures.is_mongo_ready", is_mongo_ready_mock),
-        mock.patch("pymongo.MongoClient", return_value=pymongo_client),
-    ):
-        with run_mongo_replicaset("mongo:latest", ready_timeout=2.0) as m:
-            assert m.host == "127.0.0.1"
-
-    assert create_conn.called
-    is_mongo_ready_mock.assert_not_called()
