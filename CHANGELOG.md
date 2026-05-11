@@ -13,6 +13,7 @@
 * `make coverage`: switch from `pytest --cov` to `coverage run -m pytest` so coverage starts before the `pytest11` plugin loads. Reported coverage rises from ~57% to ~95% — the previous number was a measurement artifact; module-level imports and `def` lines were running before pytest-cov activated
 * Parametrize integration smoke tests over `mongo` and `mongo_*_rs` fixtures, so the previously-untested `mongo_5_rs`, `mongo_7_rs`, and `mongo_8_rs` wrappers are now exercised. Coverage reaches 99%
 * `is_mongo_ready`: cheap `socket.create_connection` probe first; on success, when pymongo is installed, verify the server is serving wire commands via `admin.command("ping")` (with `directConnection=True` so it works on uninitiated replica-set nodes). Falls back to socket-only when pymongo is absent. Socket-first short-circuits poll cycles during mongod warm-up (avoids ~100ms pymongo MongoClient + topology cost while the TCP listener is still down)
+* Tests: cover the `ImportError` branch of the pymongo optional import and the mid-election retry branch in `run_mongo_replicaset`'s `hello` poll. Coverage reaches 100%
 
 ## v0.0.8 (2026-05-08)
 

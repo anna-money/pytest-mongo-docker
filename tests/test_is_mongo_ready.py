@@ -1,4 +1,7 @@
+import importlib
 import socket
+import sys
+from collections.abc import Iterator
 from contextlib import closing
 from unittest import mock
 
@@ -57,3 +60,21 @@ def test_returns_true_when_pymongo_absent_and_port_open(monkeypatch: pytest.Monk
     with closing(_open_listener()) as server:
         host, port = server.getsockname()
         assert is_mongo_ready(host=host, port=port, timeout=0.2) is True
+
+
+@pytest.fixture
+def _restore_utils_module() -> Iterator[None]:
+    yield
+    importlib.reload(utils)
+
+
+def test_has_pymongo_false_when_pymongo_import_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    _restore_utils_module: None,
+) -> None:
+    # Force the top-level `import pymongo` in pytest_mg.utils to raise
+    # ImportError so the except-branch sets _HAS_PYMONGO = False.
+    monkeypatch.setitem(sys.modules, "pymongo", None)
+    monkeypatch.setitem(sys.modules, "pymongo.errors", None)
+    importlib.reload(utils)
+    assert utils._HAS_PYMONGO is False

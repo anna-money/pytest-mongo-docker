@@ -5,6 +5,7 @@ from unittest import mock
 import _pytest.outcomes
 import docker
 import docker.errors
+import pymongo.errors
 import pytest
 
 from pytest_mg.runners import _ensure_image, run_mongo, run_mongo_replicaset
@@ -124,6 +125,40 @@ def test_run_mongo_replicaset_primary_election_timeout_pytest_fail() -> None:
     pymongo_client.close.assert_called_once()
     client.kill.assert_called_once()
     client.remove_container.assert_called_once_with("deadbeef", v=True)
+
+
+def test_run_mongo_replicaset_recovers_when_hello_raises_mid_election() -> None:
+    # First `hello` raises (e.g. NotMasterError mid-election); second succeeds.
+    # The bare-except in the poll loop must swallow the first error and retry.
+    client = _make_mock_apiclient()
+    pymongo_client = mock.MagicMock()
+
+    hello_results: list[Any] = [
+        pymongo.errors.PyMongoError("transient mid-election error"),
+        {"isWritablePrimary": True},
+    ]
+
+    def _admin_command(name: str, *args: Any, **kwargs: Any) -> Any:
+        if name == "replSetInitiate":
+            return {"ok": 1.0}
+        if name == "hello":
+            result = hello_results.pop(0)
+            if isinstance(result, Exception):
+                raise result
+            return result
+        raise AssertionError(f"unexpected admin command: {name}")  # pragma: no cover
+
+    pymongo_client.admin.command.side_effect = _admin_command
+
+    with (
+        mock.patch("pytest_mg.runners.docker.APIClient", return_value=client),
+        mock.patch("pytest_mg.runners.is_mongo_ready", return_value=True),
+        mock.patch("pymongo.MongoClient", return_value=pymongo_client),
+    ):
+        with run_mongo_replicaset("mongo:latest", ready_timeout=2.0) as m:
+            assert m.host == "127.0.0.1"
+
+    pymongo_client.close.assert_called_once()
 
 
 def test_run_mongo_replicaset_cleanup_swallows_kill_exception() -> None:
