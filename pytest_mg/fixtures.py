@@ -47,8 +47,6 @@ def _start_mongo_container(
         name=f"{name_prefix}-{uuid.uuid4()}",
         ports=[27017],
         detach=True,
-        # --bind_ip_all is required so the container's port mapping reaches
-        # mongod; --quiet trims log overhead during startup.
         command=command,
         host_config=docker_client.create_host_config(
             port_bindings={27017: (LOCALHOST, port)},
@@ -80,6 +78,8 @@ def _start_mongo_container(
 
 @contextlib.contextmanager
 def run_mongo(image: str, ready_timeout: float = 30.0) -> Generator[Mongo, None, None]:
+    # --bind_ip_all: mongod must listen on 0.0.0.0 so the Docker port
+    # mapping reaches it. --quiet trims startup log overhead.
     with _start_mongo_container(
         image=image,
         name_prefix="pytest-mongo",
