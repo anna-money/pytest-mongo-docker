@@ -1,3 +1,8 @@
+## Unreleased
+
+* Extract `MONGO_INTERNAL_PORT = 27017` constant in `runners.py`; reuse in container port mapping and replica-set member host string (was duplicated as a literal in three places)
+* Narrow bare `except Exception` in `run_mongo_replicaset` primary-election poll to `pymongo.errors.PyMongoError` so non-pymongo errors (e.g. programmer bugs) surface instead of being silently swallowed
+
 ## v0.1.0 (2026-05-13)
 
 * Renamed project to `pytest-mongo-docker` (module `pytest_mongo_docker`, distribution `pytest-mongo-docker`, entry point updated). Users must update imports from `pytest_mg` to `pytest_mongo_docker` and reinstall via `pip install pytest-mongo-docker`

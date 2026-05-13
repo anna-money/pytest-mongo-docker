@@ -12,6 +12,7 @@ import pytest
 from .utils import find_unused_local_port, is_mongo_ready, resolve_docker_host
 
 LOCALHOST = "127.0.0.1"
+MONGO_INTERNAL_PORT = 27017
 
 
 def _ensure_image(client: docker.APIClient, image: str) -> None:
@@ -45,11 +46,11 @@ def _start_mongo_container(
     container = docker_client.create_container(
         image=image,
         name=f"{name_prefix}-{uuid.uuid4()}",
-        ports=[27017],
+        ports=[MONGO_INTERNAL_PORT],
         detach=True,
         command=command,
         host_config=docker_client.create_host_config(
-            port_bindings={27017: (LOCALHOST, port)},
+            port_bindings={MONGO_INTERNAL_PORT: (LOCALHOST, port)},
             tmpfs=["/data/db"],
         ),
     )
@@ -97,6 +98,7 @@ def run_mongo_replicaset(
 ) -> Generator[Mongo, None, None]:
     try:
         import pymongo
+        import pymongo.errors
     except ImportError as e:
         raise ImportError("pymongo is required for replica set fixtures. Install it with: pip install pymongo") from e
 
@@ -106,10 +108,10 @@ def run_mongo_replicaset(
         command=["mongod", "--bind_ip_all", "--replSet", replica_set, "--quiet"],
         ready_timeout=ready_timeout,
     ) as mongo:
-        # Initiate the replica set. The member host must be 127.0.0.1:27017
-        # (the container-internal port) so MongoDB can reach itself for
-        # internal health checks. directConnection=True avoids topology-
-        # discovery issues from the Docker port mapping.
+        # Initiate the replica set. The member host must be the container-internal
+        # port (MONGO_INTERNAL_PORT) so MongoDB can reach itself for internal
+        # health checks. directConnection=True avoids topology-discovery issues
+        # from the Docker port mapping.
         client: pymongo.MongoClient[Any] = pymongo.MongoClient(
             f"mongodb://{LOCALHOST}:{mongo.port}/", directConnection=True
         )
@@ -118,7 +120,7 @@ def run_mongo_replicaset(
             # on a fresh data dir; tmpfs gives us that on every container start.
             client.admin.command(
                 "replSetInitiate",
-                {"_id": replica_set, "members": [{"_id": 0, "host": "127.0.0.1:27017"}]},
+                {"_id": replica_set, "members": [{"_id": 0, "host": f"{LOCALHOST}:{MONGO_INTERNAL_PORT}"}]},
             )
 
             deadline = time.monotonic() + ready_timeout
@@ -129,7 +131,7 @@ def run_mongo_replicaset(
                     # Election can take a few hundred ms after initiate.
                     if client.admin.command("hello").get("isWritablePrimary"):
                         break
-                except Exception:
+                except pymongo.errors.PyMongoError:
                     # `hello` can raise mid-election (NotMasterError, network
                     # reset); ignore and keep polling until the deadline.
                     pass
