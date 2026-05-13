@@ -1,4 +1,4 @@
-## Unreleased
+## v0.1.0 (2026-05-13)
 
 * Renamed project to `pytest-mongo-docker` (module `pytest_mongo_docker`, distribution `pytest-mongo-docker`, entry point updated). Users must update imports from `pytest_mg` to `pytest_mongo_docker` and reinstall via `pip install pytest-mongo-docker`
 
