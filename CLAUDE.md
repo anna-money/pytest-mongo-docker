@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-pytest-mg is a pytest plugin that provides session-scoped MongoDB fixtures backed by Docker containers. It automatically pulls images, allocates ports, mounts data to tmpfs for speed, and cleans up containers after tests.
+pytest-mongo-docker is a pytest plugin that provides session-scoped MongoDB fixtures backed by Docker containers. It automatically pulls images, allocates ports, mounts data to tmpfs for speed, and cleans up containers after tests.
 
 ## Commands
 
@@ -34,9 +34,9 @@ Release: create a GitHub Release. The `Publish` workflow runs `uv build` and upl
 The plugin registers via the `pytest11` entry point in `pyproject.toml`, making fixtures automatically available when installed.
 
 **Key files:**
-- `pytest_mg/fixtures.py` — `Mongo` dataclass (host/port) and `run_mongo()` context manager that handles the full Docker container lifecycle (pull → create → start → readiness check → yield → kill → remove). All fixtures (`mongo`, `mongo_5`–`mongo_8`) are session-scoped and delegate to `run_mongo()` with different image tags.
-- `pytest_mg/utils.py` — Port allocation and MongoDB readiness detection. Readiness checking uses a fallback chain: pymongo → motor → dummy (always ready). Neither pymongo nor motor is a hard dependency.
-- `tests/conftest.py` — Loads the plugin via `pytest_plugins = ["pytest_mg"]`. With `uv sync` the project is installed editable, so the entry point is also live.
+- `pytest_mongo_docker/fixtures.py` — `Mongo` dataclass (host/port) and `run_mongo()` context manager that handles the full Docker container lifecycle (pull → create → start → readiness check → yield → kill → remove). All fixtures (`mongo`, `mongo_5`–`mongo_8`) are session-scoped and delegate to `run_mongo()` with different image tags.
+- `pytest_mongo_docker/utils.py` — Port allocation and MongoDB readiness detection. Readiness checking uses a fallback chain: pymongo → motor → dummy (always ready). Neither pymongo nor motor is a hard dependency.
+- `tests/conftest.py` — Loads the plugin via `pytest_plugins = ["pytest_mongo_docker"]`. With `uv sync` the project is installed editable, so the entry point is also live.
 
 ## Style
 

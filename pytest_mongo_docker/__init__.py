@@ -30,4 +30,4 @@ __all__: tuple[str, ...] = (
     "run_mongo_replicaset",
 )
 
-__version__ = _get_version("pytest-mg")
+__version__ = _get_version("pytest-mongo-docker")
