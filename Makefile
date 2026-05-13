@@ -11,17 +11,17 @@ deps: uv
 	@uv sync --all-extras
 
 ruff: deps
-	@uv run ruff check pytest_mg tests
-	@uv run ruff format --check pytest_mg tests
+	@uv run ruff check pytest_mongo_docker tests
+	@uv run ruff format --check pytest_mongo_docker tests
 
 ruff-fix: deps
-	@uv run ruff check --fix pytest_mg tests
-	@uv run ruff format pytest_mg tests
+	@uv run ruff check --fix pytest_mongo_docker tests
+	@uv run ruff format pytest_mongo_docker tests
 
 format: ruff-fix
 
 mypy: deps
-	@uv run $(UV_EXTRA_ARGS) mypy --strict --ignore-missing-imports pytest_mg tests
+	@uv run $(UV_EXTRA_ARGS) mypy --strict --ignore-missing-imports pytest_mongo_docker tests
 
 lint: ruff mypy
 

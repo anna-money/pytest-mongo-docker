@@ -1,3 +1,7 @@
+## Unreleased
+
+* Renamed project to `pytest-mongo-docker` (module `pytest_mongo_docker`, distribution `pytest-mongo-docker`, entry point updated). Users must update imports from `pytest_mg` to `pytest_mongo_docker` and reinstall via `pip install pytest-mongo-docker`
+
 ## v0.0.9 (2026-05-08)
 
 * No runtime changes. Test suite expanded with mocked unit tests for `is_mongo_ready` driver selection, `find_unused_local_port`, `_ensure_image`, and `run_mongo` / `run_mongo_replicaset` cleanup and error paths

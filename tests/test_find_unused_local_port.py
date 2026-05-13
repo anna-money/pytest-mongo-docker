@@ -1,6 +1,6 @@
 import socket
 
-from pytest_mg.utils import find_unused_local_port
+from pytest_mongo_docker.utils import find_unused_local_port
 
 
 def test_returns_int_in_user_range() -> None:

@@ -1,4 +1,4 @@
-# pytest-mg
+# pytest-mongo-docker
 
 A pytest plugin that provides session-scoped MongoDB fixtures backed by Docker containers.
 
@@ -14,7 +14,7 @@ A pytest plugin that provides session-scoped MongoDB fixtures backed by Docker c
 ## Installation
 
 ```bash
-pip install pytest-mg
+pip install pytest-mongo-docker
 ```
 
 ## Requirements
@@ -32,10 +32,10 @@ The plugin automatically registers fixtures when installed. Import the `Mongo` t
 
 ```python
 import pymongo
-import pytest_mg
+import pytest_mongo_docker
 
 
-def test_pymongo(mongo: pytest_mg.Mongo):
+def test_pymongo(mongo: pytest_mongo_docker.Mongo):
     client = pymongo.MongoClient(host=mongo.host, port=mongo.port)
 
     db = client["test_db"]
@@ -85,11 +85,11 @@ Use session-scoped `autouse` fixtures to configure your application before tests
 ```python
 import os
 import pytest
-import pytest_mg
+import pytest_mongo_docker
 
 
 @pytest.fixture(scope="session", autouse=True)
-def init_env(mongo_6: pytest_mg.Mongo) -> None:
+def init_env(mongo_6: pytest_mongo_docker.Mongo) -> None:
     os.environ["MONGODB_CONNECTION_STRING"] = f"{mongo_6.host}:{mongo_6.port}"
     os.environ["MONGODB_DBNAME"] = "myapp"
 
@@ -105,11 +105,11 @@ def test_app():
 ```python
 import motor.motor_asyncio
 import pytest
-import pytest_mg
+import pytest_mongo_docker
 
 
 @pytest.mark.asyncio
-async def test_motor(mongo: pytest_mg.Mongo):
+async def test_motor(mongo: pytest_mongo_docker.Mongo):
     client = motor.motor_asyncio.AsyncIOMotorClient(host=mongo.host, port=mongo.port)
 
     db = client["test_db"]

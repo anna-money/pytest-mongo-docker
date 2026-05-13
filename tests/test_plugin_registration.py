@@ -27,21 +27,21 @@ def test_mongo_fixtures_discoverable_via_entrypoint(pytester: pytest.Pytester) -
         assert re.search(pattern, output), f"fixture {name!r} not listed in `pytest --fixtures` output"
 
 
-def test_pytest_mg_importable_in_subprocess(pytester: pytest.Pytester) -> None:
+def test_pytest_mongo_docker_importable_in_subprocess(pytester: pytest.Pytester) -> None:
     pytester.makepyfile(
         test_import="""
-        import pytest_mg
+        import pytest_mongo_docker
 
 
         def test_mongo_dataclass_constructible() -> None:
-            m = pytest_mg.Mongo(host="example", port=27017)
+            m = pytest_mongo_docker.Mongo(host="example", port=27017)
             assert m.host == "example"
             assert m.port == 27017
 
 
         def test_run_mongo_callable() -> None:
-            assert callable(pytest_mg.run_mongo)
-            assert callable(pytest_mg.run_mongo_replicaset)
+            assert callable(pytest_mongo_docker.run_mongo)
+            assert callable(pytest_mongo_docker.run_mongo_replicaset)
         """
     )
     result = pytester.runpytest_subprocess("-q")

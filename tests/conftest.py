@@ -1,1 +1,1 @@
-pytest_plugins = ["pytest_mg"]
+pytest_plugins = ["pytest_mongo_docker"]

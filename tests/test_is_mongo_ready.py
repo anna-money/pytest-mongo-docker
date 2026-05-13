@@ -8,8 +8,8 @@ from unittest import mock
 import pymongo.errors
 import pytest
 
-from pytest_mg import utils
-from pytest_mg.utils import is_mongo_ready
+from pytest_mongo_docker import utils
+from pytest_mongo_docker.utils import is_mongo_ready
 
 
 def _open_listener() -> socket.socket:
@@ -38,7 +38,7 @@ def test_returns_true_when_port_open_and_ping_succeeds() -> None:
         host, port = server.getsockname()
         fake_client = mock.MagicMock()
         fake_client.admin.command.return_value = {"ok": 1.0}
-        with mock.patch("pytest_mg.utils._pymongo.MongoClient", return_value=fake_client):
+        with mock.patch("pytest_mongo_docker.utils._pymongo.MongoClient", return_value=fake_client):
             assert is_mongo_ready(host=host, port=port, timeout=0.5) is True
         fake_client.admin.command.assert_called_once_with("ping")
         fake_client.close.assert_called_once()
@@ -49,7 +49,7 @@ def test_returns_false_when_port_open_but_pymongo_ping_fails() -> None:
         host, port = server.getsockname()
         fake_client = mock.MagicMock()
         fake_client.admin.command.side_effect = pymongo.errors.ServerSelectionTimeoutError("timeout")
-        with mock.patch("pytest_mg.utils._pymongo.MongoClient", return_value=fake_client):
+        with mock.patch("pytest_mongo_docker.utils._pymongo.MongoClient", return_value=fake_client):
             assert is_mongo_ready(host=host, port=port, timeout=0.2) is False
         fake_client.close.assert_called_once()
 
@@ -72,7 +72,7 @@ def test_has_pymongo_false_when_pymongo_import_fails(
     monkeypatch: pytest.MonkeyPatch,
     _restore_utils_module: None,
 ) -> None:
-    # Force the top-level `import pymongo` in pytest_mg.utils to raise
+    # Force the top-level `import pymongo` in pytest_mongo_docker.utils to raise
     # ImportError so the except-branch sets _HAS_PYMONGO = False.
     monkeypatch.setitem(sys.modules, "pymongo", None)
     monkeypatch.setitem(sys.modules, "pymongo.errors", None)
