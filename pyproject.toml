@@ -43,7 +43,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/anna-money/pytest-mongo"
+Homepage = "https://github.com/anna-money/pytest-mongo-docker"
 
 [project.entry-points.pytest11]
 pytest_mongo_docker = "pytest_mongo_docker"
