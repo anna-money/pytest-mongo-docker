@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-14
+
 ### Added
 
 - README info badges (CI status, codecov, PyPI version, downloads, Python versions, license)
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Extract `MONGO_INTERNAL_PORT = 27017` constant in `runners.py`; reuse in container port mapping and replica-set member host string (was duplicated as a literal in three places)
+- Reformat `CHANGELOG.md` to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 1.1.0
 
 ### Fixed
 
@@ -100,7 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version
 
-[Unreleased]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.9...v0.1.0
 [0.0.9]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.8...v0.0.9
 [0.0.8]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.7...v0.0.8
