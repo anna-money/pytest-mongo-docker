@@ -1,5 +1,13 @@
 # pytest-mongo-docker
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/anna-money/pytest-mongo-docker/ci.yml?branch=master)
+[![codecov](https://codecov.io/gh/anna-money/pytest-mongo-docker/graph/badge.svg)](https://codecov.io/gh/anna-money/pytest-mongo-docker)
+[![PyPI - Version](https://img.shields.io/pypi/v/pytest-mongo-docker?color=blue&label=pypi%20package)](https://pypi.org/project/pytest-mongo-docker)
+[![PyPI Downloads](https://static.pepy.tech/badge/pytest-mongo-docker)](https://pepy.tech/projects/pytest-mongo-docker)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pytest-mongo-docker)
+![GitHub License](https://img.shields.io/github/license/anna-money/pytest-mongo-docker?style=flat&color=blue)
+---
+
 A pytest plugin that provides session-scoped MongoDB fixtures backed by Docker containers.
 
 ## Features
