@@ -1,58 +1,110 @@
-## Unreleased
+# Changelog
 
-* Extract `MONGO_INTERNAL_PORT = 27017` constant in `runners.py`; reuse in container port mapping and replica-set member host string (was duplicated as a literal in three places)
-* Narrow bare `except Exception` in `run_mongo_replicaset` primary-election poll to `pymongo.errors.PyMongoError` so non-pymongo errors (e.g. programmer bugs) surface instead of being silently swallowed
+All notable changes to this project will be documented in this file.
 
-## v0.1.0 (2026-05-13)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-* Renamed project to `pytest-mongo-docker` (module `pytest_mongo_docker`, distribution `pytest-mongo-docker`, entry point updated). Users must update imports from `pytest_mg` to `pytest_mongo_docker` and reinstall via `pip install pytest-mongo-docker`
+## [Unreleased]
 
-## v0.0.9 (2026-05-08)
+### Added
 
-* No runtime changes. Test suite expanded with mocked unit tests for `is_mongo_ready` driver selection, `find_unused_local_port`, `_ensure_image`, and `run_mongo` / `run_mongo_replicaset` cleanup and error paths
-* Added `pytester`-based test verifying `pytest11` entry-point registration (catches packaging regressions)
-* Standalone `mongo` fixture now pings the container; replica-set smoke broadened to `mongo_rs` (latest) in addition to `mongo_6_rs`
-* Added `pytest-cov` dev dep and local `make coverage` target (no CI job, no threshold enforced)
-* CI: scope `setup-uv` cache per matrix cell (`cache-suffix`) to avoid `setup-uv-2-…` cache-reservation race warnings across parallel Python/pytest jobs
-* Refactor tests: split `test_utils.py` by SUT into `test_resolve_docker_host.py`, `test_find_unused_local_port.py`, `test_is_mongo_ready.py`; rename `test_fixtures_unit.py` → `test_fixtures.py`; drop duplicated `test_utils_more.py` and `test_is_mongo_ready_selection.py`; consolidate ping helper in `test_mongo.py`
-* Remove `motor` branch from `is_mongo_ready` selection chain. `motor` hard-depends on `pymongo`, so the pymongo factory always wins first — the motor branch was unreachable. Chain is now `pymongo > dummy`; drop the now-private `_try_get_is_mongo_ready_based_on_motor` helper and its tests
-* Replace pymongo-based `is_mongo_ready` ping with a raw `socket.create_connection` probe. Drops the driver-selection chain (`_try_get_is_mongo_ready_based_on_pymongo`, `_get_dummy_is_mongo_ready`, `IsReadyFunc` protocol). `run_mongo_replicaset` now reuses the same readiness helper instead of an inline socket loop
-* Extract container lifecycle into private `_start_mongo_container` context manager. `run_mongo` and `run_mongo_replicaset` now share Docker client setup, image pull, port allocation, container creation/start, readiness poll, and teardown; the RS path adds only `replSetInitiate` + primary-election wait on top. Teardown is now best-effort for both fixtures — kill/remove errors during cleanup never fail tests
-* Split `pytest_mg.fixtures` into `pytest_mg.runners` (container lifecycle: `Mongo`, `run_mongo`, `run_mongo_replicaset`) and `pytest_mg.fixtures` (pytest fixture wrappers only). Public API (`pytest_mg.Mongo`, `pytest_mg.run_mongo`, `pytest_mg.run_mongo_replicaset`) is unchanged
-* `make coverage`: switch from `pytest --cov` to `coverage run -m pytest` so coverage starts before the `pytest11` plugin loads. Reported coverage rises from ~57% to ~95% — the previous number was a measurement artifact; module-level imports and `def` lines were running before pytest-cov activated
-* Parametrize integration smoke tests over `mongo` and `mongo_*_rs` fixtures, so the previously-untested `mongo_5_rs`, `mongo_7_rs`, and `mongo_8_rs` wrappers are now exercised. Coverage reaches 99%
-* `is_mongo_ready`: cheap `socket.create_connection` probe first; on success, when pymongo is installed, verify the server is serving wire commands via `admin.command("ping")` (with `directConnection=True` so it works on uninitiated replica-set nodes). Falls back to socket-only when pymongo is absent. Socket-first short-circuits poll cycles during mongod warm-up (avoids ~100ms pymongo MongoClient + topology cost while the TCP listener is still down)
-* Tests: cover the `ImportError` branch of the pymongo optional import and the mid-election retry branch in `run_mongo_replicaset`'s `hello` poll. Coverage reaches 100%
+- README info badges (CI status, codecov, PyPI version, downloads, Python versions, license)
+- CI `coverage` job that runs `make coverage` on Python 3.13 and uploads `coverage.xml` to Codecov via `codecov/codecov-action@v5` (uses `CODECOV_TOKEN` repo secret; non-blocking on upload errors)
 
-## v0.0.8 (2026-05-08)
+### Changed
 
-* Skip `docker pull` when image already present locally (inspect first, pull only on `ImageNotFound`)
-* Tighten readiness polling intervals (500ms → 100ms) for standalone and replica set startup
-* Lower pymongo/motor `serverSelectionTimeoutMS` (1000 → 300) so poll attempts fail fast during mongod boot
-* Run mongod with explicit `--bind_ip_all --quiet` (RS keeps `--replSet`) to reduce startup log overhead
-* Fix LICENSE copyright holder
+- Extract `MONGO_INTERNAL_PORT = 27017` constant in `runners.py`; reuse in container port mapping and replica-set member host string (was duplicated as a literal in three places)
 
-## v0.0.7 (2026-05-08)
+### Fixed
 
-* Renamed project to `pytest-mg` (module `pytest_mg`, entry point updated)
-* Migrated build to `uv` + `hatchling` + `hatch-vcs` with version derived from git tags (fixes source/tag drift that broke v0.0.6 PyPI upload)
-* Switched lint/format to `ruff` (dropped black/isort/flake8 and pre-commit)
-* Split publish into its own workflow using PyPI Trusted Publishing (OIDC, no token)
-* Bumped min Python to 3.10, min pytest to 8.0; added Python 3.14 and pytest 9 to CI matrix
-* Expanded pytest matrix to every minor (8.0.x–8.4.x, 9.0.x) plus latest-of-major rolling pins
-* Switched license metadata to PEP 639 SPDX expression; added Topic/Typing classifiers and PyPI keywords
-* Bumped dev deps: mypy 2.0.0, pymongo 4.17.0, pytest 9.0.3
-* CODEOWNERS handover to `@anna-money/backend`
+- Narrow bare `except Exception` in `run_mongo_replicaset` primary-election poll to `pymongo.errors.PyMongoError` so non-pymongo errors (e.g. programmer bugs) surface instead of being silently swallowed
 
-## v0.0.6 (2026-04-29)
+## [0.1.0] - 2026-05-13
 
-* Resolve `DOCKER_HOST` from active `docker context` so non-default setups (Colima, custom contexts) work without manually exporting the variable; no-op when `DOCKER_HOST` is already set or the docker CLI is missing
+### Changed
 
-## v0.0.5 (2026-03-04)
+- **BREAKING**: Renamed project to `pytest-mongo-docker` (module `pytest_mongo_docker`, distribution `pytest-mongo-docker`, entry point updated). Users must update imports from `pytest_mg` to `pytest_mongo_docker` and reinstall via `pip install pytest-mongo-docker`
 
-* Added replica set fixtures (`mongo_rs`, `mongo_5_rs`–`mongo_8_rs`) for change stream support
-* Added pymongo as a dev dependency for readiness checking and replica set initialisation
+## [0.0.9] - 2026-05-08
 
-## v0.0.1 (2026-02-11)
+### Added
 
-* A first version
+- Mocked unit tests for `is_mongo_ready` driver selection, `find_unused_local_port`, `_ensure_image`, and `run_mongo` / `run_mongo_replicaset` cleanup and error paths
+- `pytester`-based test verifying `pytest11` entry-point registration (catches packaging regressions)
+- `pytest-cov` dev dep and local `make coverage` target (no CI job, no threshold enforced)
+- Tests covering the `ImportError` branch of the pymongo optional import and the mid-election retry branch in `run_mongo_replicaset`'s `hello` poll (coverage reaches 100%)
+
+### Changed
+
+- Standalone `mongo` fixture now pings the container; replica-set smoke broadened to `mongo_rs` (latest) in addition to `mongo_6_rs`
+- CI: scope `setup-uv` cache per matrix cell (`cache-suffix`) to avoid `setup-uv-2-…` cache-reservation race warnings across parallel Python/pytest jobs
+- Refactor tests: split `test_utils.py` by SUT into `test_resolve_docker_host.py`, `test_find_unused_local_port.py`, `test_is_mongo_ready.py`; rename `test_fixtures_unit.py` → `test_fixtures.py`; drop duplicated `test_utils_more.py` and `test_is_mongo_ready_selection.py`; consolidate ping helper in `test_mongo.py`
+- Replace pymongo-based `is_mongo_ready` ping with a raw `socket.create_connection` probe. Drops the driver-selection chain (`_try_get_is_mongo_ready_based_on_pymongo`, `_get_dummy_is_mongo_ready`, `IsReadyFunc` protocol). `run_mongo_replicaset` now reuses the same readiness helper instead of an inline socket loop
+- Extract container lifecycle into private `_start_mongo_container` context manager. `run_mongo` and `run_mongo_replicaset` now share Docker client setup, image pull, port allocation, container creation/start, readiness poll, and teardown; the RS path adds only `replSetInitiate` + primary-election wait on top. Teardown is now best-effort for both fixtures — kill/remove errors during cleanup never fail tests
+- Split `pytest_mg.fixtures` into `pytest_mg.runners` (container lifecycle: `Mongo`, `run_mongo`, `run_mongo_replicaset`) and `pytest_mg.fixtures` (pytest fixture wrappers only). Public API (`pytest_mg.Mongo`, `pytest_mg.run_mongo`, `pytest_mg.run_mongo_replicaset`) is unchanged
+- Parametrize integration smoke tests over `mongo` and `mongo_*_rs` fixtures, so the previously-untested `mongo_5_rs`, `mongo_7_rs`, and `mongo_8_rs` wrappers are now exercised (coverage reaches 99%)
+- `is_mongo_ready`: cheap `socket.create_connection` probe first; on success, when pymongo is installed, verify the server is serving wire commands via `admin.command("ping")` (with `directConnection=True` so it works on uninitiated replica-set nodes). Falls back to socket-only when pymongo is absent. Socket-first short-circuits poll cycles during mongod warm-up (avoids ~100ms pymongo MongoClient + topology cost while the TCP listener is still down)
+
+### Removed
+
+- `motor` branch from `is_mongo_ready` selection chain. `motor` hard-depends on `pymongo`, so the pymongo factory always wins first — the motor branch was unreachable. Chain is now `pymongo > dummy`; drop the now-private `_try_get_is_mongo_ready_based_on_motor` helper and its tests
+
+### Fixed
+
+- `make coverage`: switch from `pytest --cov` to `coverage run -m pytest` so coverage starts before the `pytest11` plugin loads. Reported coverage rises from ~57% to ~95% — the previous number was a measurement artifact; module-level imports and `def` lines were running before pytest-cov activated
+
+## [0.0.8] - 2026-05-08
+
+### Changed
+
+- Skip `docker pull` when image already present locally (inspect first, pull only on `ImageNotFound`)
+- Tighten readiness polling intervals (500ms → 100ms) for standalone and replica set startup
+- Lower pymongo/motor `serverSelectionTimeoutMS` (1000 → 300) so poll attempts fail fast during mongod boot
+- Run mongod with explicit `--bind_ip_all --quiet` (RS keeps `--replSet`) to reduce startup log overhead
+
+### Fixed
+
+- LICENSE copyright holder
+
+## [0.0.7] - 2026-05-08
+
+### Changed
+
+- **BREAKING**: Renamed project to `pytest-mg` (module `pytest_mg`, entry point updated)
+- Migrated build to `uv` + `hatchling` + `hatch-vcs` with version derived from git tags (fixes source/tag drift that broke v0.0.6 PyPI upload)
+- Switched lint/format to `ruff` (dropped black/isort/flake8 and pre-commit)
+- Split publish into its own workflow using PyPI Trusted Publishing (OIDC, no token)
+- Bumped min Python to 3.10, min pytest to 8.0; added Python 3.14 and pytest 9 to CI matrix
+- Expanded pytest matrix to every minor (8.0.x–8.4.x, 9.0.x) plus latest-of-major rolling pins
+- Switched license metadata to PEP 639 SPDX expression; added Topic/Typing classifiers and PyPI keywords
+- Bumped dev deps: mypy 2.0.0, pymongo 4.17.0, pytest 9.0.3
+- CODEOWNERS handover to `@anna-money/backend`
+
+## [0.0.6] - 2026-04-29
+
+### Added
+
+- Resolve `DOCKER_HOST` from active `docker context` so non-default setups (Colima, custom contexts) work without manually exporting the variable; no-op when `DOCKER_HOST` is already set or the docker CLI is missing
+
+## [0.0.5] - 2026-03-04
+
+### Added
+
+- Replica set fixtures (`mongo_rs`, `mongo_5_rs`–`mongo_8_rs`) for change stream support
+- `pymongo` as a dev dependency for readiness checking and replica set initialisation
+
+## [0.0.1] - 2026-02-11
+
+### Added
+
+- First version
+
+[Unreleased]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.9...v0.1.0
+[0.0.9]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.8...v0.0.9
+[0.0.8]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.7...v0.0.8
+[0.0.7]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.6...v0.0.7
+[0.0.6]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.5...v0.0.6
+[0.0.5]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.1...v0.0.5
+[0.0.1]: https://github.com/anna-money/pytest-mongo-docker/releases/tag/v0.0.1
