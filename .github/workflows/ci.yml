@@ -70,7 +70,7 @@ jobs:
         python-version: "3.13"
     - run: make deps
     - run: make coverage
-    - uses: codecov/codecov-action@v5
+    - uses: codecov/codecov-action@v7
       with:
         files: coverage.xml
         fail_ci_if_error: false
