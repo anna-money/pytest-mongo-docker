@@ -52,7 +52,7 @@ pytest_mongo_docker = "pytest_mongo_docker"
 dev = [
     "mypy==2.1.0",
     "pymongo==4.17.0",
-    "pytest==9.0.3",
+    "pytest==9.1.0",
     "pytest-cov==7.1.0",
     "ruff==0.15.16",
 ]
