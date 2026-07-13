@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v7.0.0
       with:
         fetch-depth: 0
-    - uses: astral-sh/setup-uv@v8.2.0
+    - uses: astral-sh/setup-uv@v8.3.0
       with:
         python-version: "3.13"
     - run: make deps
@@ -50,7 +50,7 @@ jobs:
     - uses: actions/checkout@v7.0.0
       with:
         fetch-depth: 0
-    - uses: astral-sh/setup-uv@v8.2.0
+    - uses: astral-sh/setup-uv@v8.3.0
       with:
         cache-suffix: py${{ matrix.python }}-job${{ strategy.job-index }}
     - run: echo ${{ matrix.python }} > .python-version
@@ -65,7 +65,7 @@ jobs:
     - uses: actions/checkout@v7.0.0
       with:
         fetch-depth: 0
-    - uses: astral-sh/setup-uv@v8.2.0
+    - uses: astral-sh/setup-uv@v8.3.0
       with:
         python-version: "3.13"
     - run: make deps
