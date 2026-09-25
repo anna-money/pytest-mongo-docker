@@ -17,6 +17,9 @@ def _make_mock_apiclient(container_id: str = "deadbeef") -> mock.MagicMock:
     client.create_host_config.return_value = {}
     client.logs.return_value = b"mock container logs"
     client.inspect_image.return_value = {"Id": "sha256:abc"}
+    client.inspect_container.return_value = {
+        "NetworkSettings": {"Ports": {"27017/tcp": [{"HostIp": "127.0.0.1", "HostPort": "54321"}]}}
+    }
     return client
 
 
@@ -45,8 +48,8 @@ def test_run_mongo_pytest_fail_on_readiness_timeout_and_cleanup() -> None:
             pytest.fail("should not reach yield")  # pragma: no cover
 
     assert "Failed to start mongo using mongo:latest" in str(excinfo.value)
-    client.kill.assert_called_once()
-    client.remove_container.assert_called_once_with("deadbeef", v=True)
+    client.kill.assert_not_called()
+    client.remove_container.assert_called_once_with("deadbeef", v=True, force=True)
 
 
 def test_run_mongo_cleanup_on_yield_exception() -> None:
@@ -60,8 +63,8 @@ def test_run_mongo_cleanup_on_yield_exception() -> None:
             raise RuntimeError("boom")
 
     client.start.assert_called_once_with(container="deadbeef")
-    client.kill.assert_called_once_with(container="deadbeef")
-    client.remove_container.assert_called_once_with("deadbeef", v=True)
+    client.kill.assert_not_called()
+    client.remove_container.assert_called_once_with("deadbeef", v=True, force=True)
 
 
 def test_run_mongo_yields_mongo_with_correct_host() -> None:
@@ -95,8 +98,8 @@ def test_run_mongo_replicaset_pytest_fail_on_readiness_timeout() -> None:
 
     assert "Failed to start mongo using mongo:latest" in str(excinfo.value)
     # Cleanup is wrapped in contextlib.suppress; verify it still ran.
-    client.kill.assert_called_once()
-    client.remove_container.assert_called_once_with("deadbeef", v=True)
+    client.kill.assert_not_called()
+    client.remove_container.assert_called_once_with("deadbeef", v=True, force=True)
 
 
 def test_run_mongo_replicaset_primary_election_timeout_pytest_fail() -> None:
@@ -123,8 +126,8 @@ def test_run_mongo_replicaset_primary_election_timeout_pytest_fail() -> None:
 
     assert "did not become primary" in str(excinfo.value)
     pymongo_client.close.assert_called_once()
-    client.kill.assert_called_once()
-    client.remove_container.assert_called_once_with("deadbeef", v=True)
+    client.kill.assert_not_called()
+    client.remove_container.assert_called_once_with("deadbeef", v=True, force=True)
 
 
 def test_run_mongo_replicaset_recovers_when_hello_raises_mid_election() -> None:
@@ -161,10 +164,9 @@ def test_run_mongo_replicaset_recovers_when_hello_raises_mid_election() -> None:
     pymongo_client.close.assert_called_once()
 
 
-def test_run_mongo_replicaset_cleanup_swallows_kill_exception() -> None:
+def test_run_mongo_replicaset_cleanup_swallows_remove_exception() -> None:
     """contextlib.suppress should swallow Docker errors during teardown."""
     client = _make_mock_apiclient()
-    client.kill.side_effect = docker.errors.APIError("kill failed")
     client.remove_container.side_effect = docker.errors.APIError("remove failed")
 
     with (

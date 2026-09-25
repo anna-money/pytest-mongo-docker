@@ -9,7 +9,7 @@ import docker
 import docker.errors
 import pytest
 
-from .utils import find_unused_local_port, is_mongo_ready, resolve_docker_host
+from .utils import is_mongo_ready, published_port, resolve_docker_host
 
 LOCALHOST = "127.0.0.1"
 MONGO_INTERNAL_PORT = 27017
@@ -41,8 +41,6 @@ def _start_mongo_container(
     docker_client = docker.APIClient(base_url=resolve_docker_host(), version="auto")
     _ensure_image(docker_client, image)
 
-    port = find_unused_local_port()
-
     container = docker_client.create_container(
         image=image,
         name=f"{name_prefix}-{uuid.uuid4()}",
@@ -50,13 +48,14 @@ def _start_mongo_container(
         detach=True,
         command=command,
         host_config=docker_client.create_host_config(
-            port_bindings={MONGO_INTERNAL_PORT: (LOCALHOST, port)},
+            port_bindings={MONGO_INTERNAL_PORT: (LOCALHOST, None)},
             tmpfs=["/data/db"],
         ),
     )
 
     try:
         docker_client.start(container=container["Id"])
+        port = published_port(docker_client, container["Id"], MONGO_INTERNAL_PORT)
 
         deadline = time.monotonic() + ready_timeout
         while time.monotonic() < deadline:
@@ -72,9 +71,7 @@ def _start_mongo_container(
         # Teardown is best-effort: Docker errors (network already torn down,
         # container exited non-zero) must not fail tests.
         with contextlib.suppress(Exception):
-            docker_client.kill(container=container["Id"])
-        with contextlib.suppress(Exception):
-            docker_client.remove_container(container["Id"], v=True)
+            docker_client.remove_container(container["Id"], v=True, force=True)
 
 
 @contextlib.contextmanager
