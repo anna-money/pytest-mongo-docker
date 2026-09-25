@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-25
+
 ### Fixed
 
 - Let Docker choose the published port, so parallel workers cannot be handed the same one
@@ -107,7 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First version
 
-[Unreleased]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.9...v0.1.0
 [0.0.9]: https://github.com/anna-money/pytest-mongo-docker/compare/v0.0.8...v0.0.9
